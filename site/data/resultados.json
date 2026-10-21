@@ -1,0 +1,221 @@
+{
+ "custo_inicial": 180564246.98000002,
+ "orcamento_mb": 1024,
+ "limiar": 0.01,
+ "rodadas": [
+  {
+   "indice": "orders(user_id)",
+   "custo": 114232884.18,
+   "tamanho_estimado": 79446016,
+   "tamanho_real": 27992064
+  },
+  {
+   "indice": "order_products(product_id)",
+   "custo": 19375534.08,
+   "tamanho_estimado": 785432576,
+   "tamanho_real": 238149632
+  }
+ ],
+ "consultas": [
+  {
+   "id": "q01",
+   "nome": "q01_historico_usuario",
+   "descricao": "Tela \"meus pedidos\": os 10 pedidos mais recentes de um usuário.",
+   "peso": 600.0,
+   "sql": "SELECT order_id, order_number, order_dow, order_hour_of_day, days_since_prior_order\nFROM orders\nWHERE user_id = 183981\nORDER BY order_number DESC\nLIMIT 10",
+   "custo_antes": 36587.08,
+   "custo_depois": 9.29,
+   "usa": [
+    "orders(user_id)"
+   ],
+   "ms_antes": 42.029,
+   "ms_depois": 0.035
+  },
+  {
+   "id": "q02",
+   "nome": "q02_ultimo_pedido_itens",
+   "descricao": "\"Pedir de novo\": itens do último pedido do usuário, com o nome do produto.",
+   "peso": 400.0,
+   "sql": "SELECT p.product_name, op.add_to_cart_order\nFROM orders o\nJOIN order_products op ON op.order_id = o.order_id\nJOIN products p ON p.product_id = op.product_id\nWHERE o.user_id = 9973\n  AND o.order_number = (SELECT max(order_number) FROM orders WHERE user_id = 9973 AND eval_set = 'prior')\nORDER BY op.add_to_cart_order",
+   "custo_antes": 78907.08,
+   "custo_depois": 236.12,
+   "usa": [
+    "orders(user_id)"
+   ],
+   "ms_antes": 85.038,
+   "ms_depois": 0.032
+  },
+  {
+   "id": "q03",
+   "nome": "q03_itens_do_pedido",
+   "descricao": "Controle: itens de um pedido. A chave primária (order_id, add_to_cart_order) já resolve; um consultor que sugira índice aqui está errado.",
+   "peso": 800.0,
+   "sql": "SELECT product_id, add_to_cart_order, reordered\nFROM order_products\nWHERE order_id = 2539329\nORDER BY add_to_cart_order",
+   "custo_antes": 214.43,
+   "custo_depois": 214.43,
+   "usa": [],
+   "ms_antes": 0.01,
+   "ms_depois": 0.009
+  },
+  {
+   "id": "q04",
+   "nome": "q04_pedidos_com_produto",
+   "descricao": "Quantos pedidos levaram um produto de nicho (abacate orgânico em saco).",
+   "peso": 120.0,
+   "sql": "SELECT count(DISTINCT order_id)\nFROM order_products\nWHERE product_id = 1374",
+   "custo_antes": 322422.75,
+   "custo_depois": 9219.88,
+   "usa": [
+    "order_products(product_id)"
+   ],
+   "ms_antes": 224.999,
+   "ms_depois": 1.883
+  },
+  {
+   "id": "q05",
+   "nome": "q05_taxa_recompra_produto",
+   "descricao": "Página do produto: taxa de recompra.",
+   "peso": 150.0,
+   "sql": "SELECT avg(reordered::int) AS taxa_recompra, count(*) AS vendas\nFROM order_products\nWHERE product_id = 1374",
+   "custo_antes": 322099.09,
+   "custo_depois": 9087.73,
+   "usa": [
+    "order_products(product_id)"
+   ],
+   "ms_antes": 233.132,
+   "ms_depois": 1.704
+  },
+  {
+   "id": "q06",
+   "nome": "q06_top_produtos_corredor",
+   "descricao": "Os 20 produtos mais vendidos do corredor \"energy granola bars\".",
+   "peso": 20.0,
+   "sql": "SELECT p.product_id, p.product_name, count(*) AS vendas\nFROM products p\nJOIN order_products op ON op.product_id = p.product_id\nWHERE p.aisle_id = 3\nGROUP BY p.product_id, p.product_name\nORDER BY vendas DESC\nLIMIT 20",
+   "custo_antes": 325456.28,
+   "custo_depois": 106926.65,
+   "usa": [
+    "order_products(product_id)"
+   ],
+   "ms_antes": 493.251,
+   "ms_depois": 40.598
+  },
+  {
+   "id": "q07",
+   "nome": "q07_comprados_juntos",
+   "descricao": "\"Quem comprou abacate orgânico também levou\": produtos nos mesmos pedidos.",
+   "peso": 30.0,
+   "sql": "SELECT op2.product_id, count(*) AS juntos\nFROM order_products op1\nJOIN order_products op2 ON op2.order_id = op1.order_id AND op2.product_id <> op1.product_id\nWHERE op1.product_id = 1374\nGROUP BY op2.product_id\nORDER BY juntos DESC\nLIMIT 10",
+   "custo_antes": 415553.69,
+   "custo_depois": 217196.72,
+   "usa": [
+    "order_products(product_id)"
+   ],
+   "ms_antes": 243.447,
+   "ms_depois": 24.165
+  },
+  {
+   "id": "q08",
+   "nome": "q08_pedidos_por_hora",
+   "descricao": "Controle: distribuição de pedidos por dia e hora. Lê a tabela inteira; índice não ajuda agregação sem filtro.",
+   "peso": 2.0,
+   "sql": "SELECT order_dow, order_hour_of_day, count(*)\nFROM orders\nGROUP BY order_dow, order_hour_of_day\nORDER BY order_dow, order_hour_of_day",
+   "custo_antes": 42176.59,
+   "custo_depois": 42176.59,
+   "usa": [],
+   "ms_antes": 126.958,
+   "ms_depois": 126.639
+  },
+  {
+   "id": "q09",
+   "nome": "q09_favoritos_usuario",
+   "descricao": "Os produtos que o usuário mais recompra (base de uma recomendação).",
+   "peso": 200.0,
+   "sql": "SELECT op.product_id, count(*) AS vezes\nFROM orders o\nJOIN order_products op ON op.order_id = o.order_id\nWHERE o.user_id = 183981 AND op.reordered\nGROUP BY op.product_id\nORDER BY vezes DESC\nLIMIT 15",
+   "custo_antes": 38752.12,
+   "custo_depois": 6644.89,
+   "usa": [
+    "orders(user_id)"
+   ],
+   "ms_antes": 52.464,
+   "ms_depois": 0.283
+  },
+  {
+   "id": "q10",
+   "nome": "q10_pedido_treino_usuario",
+   "descricao": "O pedido do conjunto de treino de um usuário (o \"próximo pedido\" a prever).",
+   "peso": 100.0,
+   "sql": "SELECT order_id, order_dow, order_hour_of_day\nFROM orders\nWHERE user_id = 9973 AND eval_set = 'train'",
+   "custo_antes": 39344.73,
+   "custo_depois": 8.67,
+   "usa": [
+    "orders(user_id)"
+   ],
+   "ms_antes": 53.799,
+   "ms_depois": 0.009
+  },
+  {
+   "id": "q11",
+   "nome": "q11_clientes_mensais",
+   "descricao": "Clientes que compram de 30 em 30 dias aos domingos (campanha de e-mail).",
+   "peso": 10.0,
+   "sql": "SELECT count(DISTINCT user_id)\nFROM orders\nWHERE days_since_prior_order = 30 AND order_dow = 0",
+   "custo_antes": 48713.01,
+   "custo_depois": 48713.01,
+   "usa": [],
+   "ms_antes": 67.734,
+   "ms_depois": 67.755
+  },
+  {
+   "id": "q12",
+   "nome": "q12_primeiros_pedidos_madrugada",
+   "descricao": "Primeiro pedido feito de madrugada (0h–4h).",
+   "peso": 5.0,
+   "sql": "SELECT count(*)\nFROM orders\nWHERE order_number = 1 AND order_hour_of_day BETWEEN 0 AND 4",
+   "custo_antes": 42106.34,
+   "custo_depois": 42106.34,
+   "usa": [],
+   "ms_antes": 62.76,
+   "ms_depois": 63.173
+  },
+  {
+   "id": "q13",
+   "nome": "q13_cesta_departamento_usuario",
+   "descricao": "Como a cesta do usuário se divide entre departamentos.",
+   "peso": 80.0,
+   "sql": "SELECT d.department, count(*) AS itens\nFROM orders o\nJOIN order_products op ON op.order_id = o.order_id\nJOIN products p ON p.product_id = op.product_id\nJOIN departments d ON d.department_id = p.department_id\nWHERE o.user_id = 183981\nGROUP BY d.department\nORDER BY itens DESC",
+   "custo_antes": 38770.73,
+   "custo_depois": 6755.07,
+   "usa": [
+    "orders(user_id)"
+   ],
+   "ms_antes": 53.074,
+   "ms_depois": 1.051
+  },
+  {
+   "id": "q14",
+   "nome": "q14_busca_produto",
+   "descricao": "Busca por prefixo do nome. B-tree comum não serve para LIKE com collation não-C; é um caso em que o consultor deve falhar sem opclass especial.",
+   "peso": 300.0,
+   "sql": "SELECT product_id, product_name\nFROM products\nWHERE product_name LIKE 'Organic Hass%'\nORDER BY product_name\nLIMIT 20",
+   "custo_antes": 1082.17,
+   "custo_depois": 1082.17,
+   "usa": [],
+   "ms_antes": 2.363,
+   "ms_depois": 1.938
+  },
+  {
+   "id": "q15",
+   "nome": "q15_vendas_departamento_produto",
+   "descricao": "Recompra média dos produtos congelados mais vendidos.",
+   "peso": 15.0,
+   "sql": "SELECT p.product_name, count(*) AS vendas, avg(op.reordered::int) AS recompra\nFROM products p\nJOIN order_products op ON op.product_id = p.product_id\nWHERE p.department_id = 1\nGROUP BY p.product_name\nORDER BY vendas DESC\nLIMIT 10",
+   "custo_antes": 333538.12,
+   "custo_depois": 333538.12,
+   "usa": [],
+   "ms_antes": 639.754,
+   "ms_depois": 658.197
+  }
+ ],
+ "carga_antes_s": 170.047596,
+ "carga_depois_s": 13.902098
+}

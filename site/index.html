@@ -1,0 +1,360 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Consultor de Índices</title>
+<meta name="description" content="Um algoritmo guloso escolhe índices do Postgres com índices hipotéticos e é conferido contra o tempo real, na base do Instacart.">
+<style>
+:root {
+  color-scheme: light;
+  --page: #f9f9f7; --surface-1: #fcfcfb;
+  --text-primary: #0b0b0b; --text-secondary: #52514e; --text-muted: #898781;
+  --grid: #e1e0d9; --axis: #c3c2b7; --border: rgba(11,11,11,0.10);
+  --series-1: #2a78d6; --series-2: #eb6834; --good: #006300; --focus: #2a78d6;
+}
+@media (prefers-color-scheme: dark) {
+  :root:where(:not([data-theme="light"])) {
+    color-scheme: dark;
+    --page: #0d0d0d; --surface-1: #1a1a19;
+    --text-primary: #f0efec; --text-secondary: #c3c2b7; --text-muted: #898781;
+    --grid: #2c2c2a; --axis: #383835; --border: rgba(255,255,255,0.10);
+    --series-1: #3987e5; --series-2: #d95926; --good: #0ca30c; --focus: #5598e7;
+  }
+}
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --page: #0d0d0d; --surface-1: #1a1a19;
+  --text-primary: #f0efec; --text-secondary: #c3c2b7; --text-muted: #898781;
+  --grid: #2c2c2a; --axis: #383835; --border: rgba(255,255,255,0.10);
+  --series-1: #3987e5; --series-2: #d95926; --good: #0ca30c; --focus: #5598e7;
+}
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--page); color: var(--text-primary); font: 15px/1.5 system-ui, -apple-system, "Segoe UI", sans-serif; }
+main { max-width: 1080px; margin: 0 auto; padding: 32px 16px 64px; }
+h1 { font-size: 30px; line-height: 1.2; margin: 0 0 8px; font-weight: 650; }
+h2 { font-size: 20px; margin: 0 0 4px; font-weight: 620; }
+p { margin: 0 0 12px; }
+a { color: var(--series-1); }
+code { font: 13px ui-monospace, SFMono-Regular, Menlo, monospace; }
+.lede { color: var(--text-secondary); max-width: 780px; font-size: 16px; }
+.card { background: var(--surface-1); border: 1px solid var(--border); border-radius: 12px; padding: 20px; margin-top: 16px; }
+.card > .sub { color: var(--text-secondary); margin-bottom: 14px; }
+.hero { margin-top: 24px; display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 16px; }
+.hero .num { font-size: 52px; font-weight: 650; line-height: 1.1; }
+.hero .txt { color: var(--text-secondary); font-size: 16px; }
+.tiles { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 12px; margin-top: 16px; }
+.tile { background: var(--surface-1); border: 1px solid var(--border); border-radius: 12px; padding: 14px 16px; }
+.tile .label { color: var(--text-secondary); font-size: 13px; }
+.tile .value { font-size: 24px; font-weight: 620; margin-top: 2px; }
+.grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+@media (max-width: 860px) { .grid2 { grid-template-columns: 1fr; } }
+.legend { display: flex; flex-wrap: wrap; gap: 6px 16px; font-size: 13px; color: var(--text-secondary); margin-bottom: 8px; }
+.legend span { display: inline-flex; align-items: center; gap: 6px; }
+.dot { width: 10px; height: 10px; border-radius: 50%; display: inline-block; }
+.sw { width: 12px; height: 12px; border-radius: 3px; display: inline-block; }
+.ln { width: 16px; height: 0; border-top: 1px solid var(--text-muted); display: inline-block; }
+.scroll { overflow-x: auto; }
+svg text { fill: var(--text-secondary); font: 12px system-ui, -apple-system, "Segoe UI", sans-serif; }
+svg .val { fill: var(--text-primary); font-variant-numeric: tabular-nums; }
+svg .ax { fill: var(--text-muted); font-variant-numeric: tabular-nums; font-size: 11px; }
+.hit { cursor: default; }
+.hit:hover .mark, .hit:focus .mark { filter: brightness(1.15); }
+[tabindex]:focus-visible, button:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
+#tip { position: fixed; pointer-events: none; z-index: 10; display: none; background: var(--surface-1); color: var(--text-primary);
+  border: 1px solid var(--border); border-radius: 8px; padding: 8px 10px; font-size: 13px; box-shadow: 0 4px 16px rgba(0,0,0,.12); max-width: 300px; }
+#tip strong { font-size: 15px; display: block; }
+#tip .k { color: var(--text-secondary); }
+table { border-collapse: collapse; font-size: 13px; width: 100%; }
+th, td { padding: 6px 8px; border-bottom: 1px solid var(--grid); text-align: right; vertical-align: top; }
+th:nth-child(-n+2), td:nth-child(-n+2) { text-align: left; }
+td.num, th.num { font-variant-numeric: tabular-nums; white-space: nowrap; }
+thead th { color: var(--text-secondary); font-weight: 600; }
+details summary { cursor: pointer; color: var(--text-secondary); font-size: 12px; }
+details pre { font: 12px ui-monospace, SFMono-Regular, Menlo, monospace; white-space: pre-wrap; color: var(--text-secondary); margin: 6px 0 0; }
+.note { border-left: 3px solid var(--axis); padding: 4px 12px; color: var(--text-secondary); font-size: 14px; margin-top: 12px; }
+ol.passos { padding-left: 20px; color: var(--text-secondary); }
+ol.passos li { margin-bottom: 6px; }
+ol.passos strong { color: var(--text-primary); }
+footer { color: var(--text-muted); font-size: 13px; margin-top: 40px; }
+</style>
+</head>
+<body>
+<main>
+  <header>
+    <h1>Consultor de Índices</h1>
+    <p class="lede">Um algoritmo escolhe que índices criar num Postgres a partir das consultas que o sistema roda e de quantas vezes cada uma roda. Ele testa cada candidato como índice hipotético, que o planejador enxerga mas o disco não, e escolhe de forma gulosa sob um orçamento de espaço. Depois os escolhidos são criados de verdade e o tempo é medido no relógio. Base: Instacart, com 33,8 milhões de itens de pedido.</p>
+    <div class="hero"><span class="num" id="hero"></span><span class="txt" id="hero-txt"></span></div>
+    <div class="tiles" id="tiles"></div>
+  </header>
+
+  <section class="card" aria-labelledby="t-consultas">
+    <h2 id="t-consultas">Cada consulta, antes e depois</h2>
+    <div class="sub">Tempo de execução medido (mediana de 3, cache quente), em escala logarítmica: cada marca do eixo é dez vezes a anterior. Abaixo da linha ficam as seis consultas em que o consultor previu ganho nenhum. Nelas os dois pontos quase se sobrepõem, porque o tempo não mudou.</div>
+    <div class="legend"><span><i class="dot" style="background:var(--series-1)"></i>Sem índice secundário</span><span><i class="dot" style="background:var(--series-2)"></i>Com os índices escolhidos</span></div>
+    <div class="scroll"><div id="haltere"></div></div>
+  </section>
+
+  <div class="grid2">
+    <section class="card" aria-labelledby="t-previsto">
+      <h2 id="t-previsto">Previsto × medido</h2>
+      <div class="sub">Quantas vezes mais rápida cada consulta ficou. Eixo horizontal: o que o planejador estimou. Vertical: o que o relógio mediu. Acima da diagonal, o ganho real foi maior que o previsto.</div>
+      <div id="dispersao"></div>
+    </section>
+    <section class="card" aria-labelledby="t-rodadas">
+      <h2 id="t-rodadas">As rodadas do guloso</h2>
+      <div class="sub">Custo estimado da carga inteira (ponderado pela frequência) depois de cada índice escolhido, em relação ao banco sem nenhum. A última barra é o tempo real medido.</div>
+      <div id="rodadas"></div>
+      <h2 style="margin-top:20px">Tamanho: estimado × real</h2>
+      <div class="sub">A HypoPG não modela a deduplicação de chaves do B-tree (Postgres 13 em diante) e estima cerca de três vezes o tamanho real.</div>
+      <div class="legend"><span><i class="sw" style="background:var(--series-1)"></i>Estimado pela HypoPG</span><span><i class="sw" style="background:var(--series-2)"></i>Real, depois de criado</span></div>
+      <div id="tamanhos"></div>
+    </section>
+  </div>
+
+  <section class="card" aria-labelledby="t-tabela">
+    <h2 id="t-tabela">Todas as consultas</h2>
+    <div class="sub">Peso é quantas vezes por hora a consulta roda. "s/h" é o tempo que ela consome por hora (peso × tempo).</div>
+    <div class="scroll"><table id="tabela"></table></div>
+  </section>
+
+  <section class="card" aria-labelledby="t-metodo">
+    <h2 id="t-metodo">Como o consultor decide</h2>
+    <ol class="passos">
+      <li><strong>Lê o plano, não o SQL.</strong> O <code>EXPLAIN VERBOSE</code> do próprio Postgres diz que colunas cada consulta filtra, junta e ordena, com alias e subconsulta já resolvidos.</li>
+      <li><strong>Monta candidatos</strong> de 1 a 3 colunas, com as de igualdade na frente: <code>(user_id, order_number)</code> serve a "WHERE user_id = X ORDER BY order_number", e o contrário não serve. Prefixo de índice existente é descartado.</li>
+      <li><strong>Mede cada candidato sem criá-lo:</strong> a HypoPG cria o índice só no catálogo da sessão, e o <code>EXPLAIN</code> devolve o novo custo.</li>
+      <li><strong>Escolhe de forma gulosa:</strong> a cada rodada entra o candidato de maior ganho por byte que cabe no orçamento, com o ganho recalculado, porque dois índices que servem à mesma consulta não somam. Para quando a rodada ganha menos de 1% do custo atual.</li>
+      <li><strong>Prova:</strong> cria os escolhidos de verdade e mede o tempo de cada consulta antes e depois.</li>
+    </ol>
+    <p class="note">Limites: o guloso não desfaz uma escolha; o custo do planejador é a função objetivo e herda os erros dele (o gráfico "previsto × medido"); a carga é só de leitura, então o custo que índice impõe à escrita não entra; só B-tree.</p>
+  </section>
+
+  <footer>Código: <a href="https://github.com/LuissFellipe/consultor-indices">github.com/LuissFellipe/consultor-indices</a>. Postgres 17, HypoPG 1.4.3, base Instacart Market Basket (Kaggle).</footer>
+</main>
+<div id="tip" role="tooltip"></div>
+
+<script>
+const NS = "http://www.w3.org/2000/svg";
+const fmt = (v, d = 1) => v.toLocaleString("pt-BR", { maximumFractionDigits: d, minimumFractionDigits: d });
+const ms = v => v < 0.1 ? fmt(v, 2) + " ms" : v < 10 ? fmt(v, 1) + " ms" : fmt(v, 0) + " ms";
+const vezes = v => "×" + (v >= 100 ? fmt(v, 0) : fmt(v, 1));
+const pct = v => fmt(v * 100, 1) + "%";
+const mb = b => fmt(b / 1024 ** 2, 1) + " MB";
+
+function el(tag, attrs = {}, parent) {
+  const e = document.createElementNS(NS, tag);
+  for (const [k, v] of Object.entries(attrs)) e.setAttribute(k, v);
+  if (parent) parent.appendChild(e);
+  return e;
+}
+function txt(parent, x, y, s, attrs = {}) { const t = el("text", { x, y, ...attrs }, parent); t.textContent = s; return t; }
+function svg(w, h, label) {
+  const s = el("svg", { viewBox: `0 0 ${w} ${h}`, width: w, height: h, role: "img", "aria-label": label });
+  s.style.maxWidth = "100%"; s.style.height = "auto";
+  return s;
+}
+function node(tag, text, cls) { const e = document.createElement(tag); if (text != null) e.textContent = text; if (cls) e.className = cls; return e; }
+
+const tip = document.getElementById("tip");
+function mostrar(ev, linhas) {
+  tip.replaceChildren();
+  const [v, ...r] = linhas;
+  tip.appendChild(node("strong", v));
+  for (const l of r) tip.appendChild(node("div", l, "k"));
+  tip.style.display = "block";
+  let x, y;
+  if (ev.type !== "focus") { x = ev.clientX; y = ev.clientY; } else { const b = ev.target.getBoundingClientRect(); x = b.left + b.width / 2; y = b.top; }
+  tip.style.left = Math.min(innerWidth - tip.offsetWidth - 8, Math.max(8, x + 14)) + "px";
+  tip.style.top = (y - tip.offsetHeight - 12 < 8 ? y + 18 : y - tip.offsetHeight - 12) + "px";
+}
+function interativo(g, linhas) {
+  g.setAttribute("tabindex", "0");
+  g.addEventListener("pointermove", ev => mostrar(ev, linhas()));
+  g.addEventListener("pointerleave", () => tip.style.display = "none");
+  g.addEventListener("focus", ev => mostrar(ev, linhas()));
+  g.addEventListener("blur", () => tip.style.display = "none");
+}
+function rotulo(c) {
+  // "q07_comprados_juntos" → "q07 comprados juntos"
+  return c.nome.replace(/_/g, " ");
+}
+
+async function iniciar() {
+  const D = await fetch("data/resultados.json").then(r => r.json());
+  const C = D.consultas.map(c => ({ ...c, real: c.ms_antes / Math.max(c.ms_depois, 1e-3), est: c.custo_antes / c.custo_depois }));
+
+  // ── abertura ──
+  document.getElementById("hero").textContent = `${fmt(D.carga_antes_s)} s → ${fmt(D.carga_depois_s)} s`;
+  document.getElementById("hero-txt").textContent =
+    `de consulta por hora com ${D.rodadas.length} índices: ${pct(1 - D.carga_depois_s / D.carga_antes_s)} a menos`;
+  const tiles = [
+    ["Consultas na carga de trabalho", C.length],
+    ["Índices escolhidos", D.rodadas.length],
+    ["Espaço ocupado (real)", mb(D.rodadas.reduce((a, r) => a + r.tamanho_real, 0))],
+    ["Consultas que não mudaram, como previsto", C.filter(c => c.est < 1.05).length],
+  ];
+  const T = document.getElementById("tiles");
+  for (const [l, v] of tiles) { const d = node("div", null, "tile"); d.append(node("div", l, "label"), node("div", String(v), "value")); T.appendChild(d); }
+
+  // ── haltere: antes × depois por consulta, escala log ──
+  (() => {
+    const ord = [...C].sort((a, b) => (b.est >= 1.05) - (a.est >= 1.05) || b.ms_antes - a.ms_antes);
+    const W = 980, esq = 260, dir = 30, linha = 28, topo = 10, H = topo + ord.length * linha + 30;
+    const lo = Math.log10(0.005), hi = Math.log10(2000);
+    const x = v => esq + (Math.log10(Math.max(v, 0.005)) - lo) / (hi - lo) * (W - esq - dir);
+    const s = svg(W, H, "Tempo de cada consulta antes e depois dos índices, em escala logarítmica");
+    // 15 linhas de nome comprido: encolher para a tela do celular deixaria
+    // tudo ilegível; rola dentro do card
+    s.style.maxWidth = "none";
+    for (const t of [0.01, 0.1, 1, 10, 100, 1000]) {
+      el("line", { x1: x(t), x2: x(t), y1: topo - 4, y2: H - 24, stroke: "var(--grid)" }, s);
+      txt(s, x(t), H - 8, t < 1 ? String(t).replace(".", ",") + " ms" : t.toLocaleString("pt-BR") + " ms", { class: "ax", "text-anchor": "middle" });
+    }
+    ord.forEach((c, i) => {
+      const y = topo + i * linha + linha / 2;
+      if (i > 0 && ord[i - 1].est >= 1.05 && c.est < 1.05)
+        el("line", { x1: 0, x2: W, y1: y - linha / 2, y2: y - linha / 2, stroke: "var(--axis)" }, s);
+      const g = el("g", { class: "hit", "aria-label": `${rotulo(c)}: ${ms(c.ms_antes)} antes, ${ms(c.ms_depois)} depois` }, s);
+      el("rect", { x: 0, y: y - linha / 2, width: W, height: linha, fill: "transparent" }, g);
+      txt(g, esq - 12, y + 4, rotulo(c), { "text-anchor": "end" });
+      const xa = x(c.ms_antes), xd = x(c.ms_depois);
+      el("line", { x1: xa, x2: xd, y1: y, y2: y, stroke: "var(--axis)", "stroke-width": 2 }, g);
+      el("circle", { class: "mark", cx: xa, cy: y, r: 5, fill: "var(--series-1)", stroke: "var(--surface-1)", "stroke-width": 2 }, g);
+      el("circle", { class: "mark", cx: xd, cy: y, r: 5, fill: "var(--series-2)", stroke: "var(--surface-1)", "stroke-width": 2 }, g);
+      // rótulo seletivo: o ganho, só onde houve ganho
+      if (c.real >= 2) {
+        // à esquerda do ponto de depois; sem espaço até o nome, vai à direita do de antes
+        const esqLivre = Math.min(xa, xd) - esq > 64;
+        txt(g, esqLivre ? Math.min(xa, xd) - 10 : Math.max(xa, xd) + 10, y + 4, vezes(c.real),
+            { class: "val", "text-anchor": esqLivre ? "end" : "start" });
+      }
+      interativo(g, () => [c.real >= 2 ? `${vezes(c.real)} mais rápida` : "Sem ganho", c.descricao,
+        `${ms(c.ms_antes)} → ${ms(c.ms_depois)}`, `Roda ${c.peso} vezes por hora`,
+        c.usa.length ? `Usa ${c.usa.join(", ")}` : "Nenhum índice novo no plano"]);
+    });
+    document.getElementById("haltere").replaceChildren(s);
+  })();
+
+  // ── dispersão previsto × medido, log-log ──
+  (() => {
+    const W = 500, H = 420, m = { l: 56, r: 34, t: 12, b: 44 };
+    const lo = 0, hi = 4; // 10^0 a 10^4
+    const x = v => m.l + (Math.log10(Math.max(v, 1)) - lo) / (hi - lo) * (W - m.l - m.r);
+    const y = v => H - m.b - (Math.log10(Math.max(v, 1)) - lo) / (hi - lo) * (H - m.t - m.b);
+    const s = svg(W, H, "Ganho estimado pelo planejador contra ganho medido, por consulta");
+    for (const t of [1, 10, 100, 1000, 10000]) {
+      el("line", { x1: x(t), x2: x(t), y1: m.t, y2: H - m.b, stroke: "var(--grid)" }, s);
+      el("line", { x1: m.l, x2: W - m.r, y1: y(t), y2: y(t), stroke: "var(--grid)" }, s);
+      txt(s, x(t), H - m.b + 16, "×" + t.toLocaleString("pt-BR"), { class: "ax", "text-anchor": "middle" });
+      txt(s, m.l - 6, y(t) + 4, "×" + t.toLocaleString("pt-BR"), { class: "ax", "text-anchor": "end" });
+    }
+    el("line", { x1: x(1), y1: y(1), x2: x(10000), y2: y(10000), stroke: "var(--text-muted)", "stroke-width": 1 }, s);
+    txt(s, x(2500), y(2500) + 16, "previsão exata", { class: "ax", "text-anchor": "end", transform: `rotate(-${Math.atan2(y(1) - y(10000), x(10000) - x(1)) * 180 / Math.PI} ${x(2500)} ${y(2500) + 16})` });
+    txt(s, (m.l + W - m.r) / 2, H - 6, "estimado pelo planejador", { class: "ax", "text-anchor": "middle" });
+    txt(s, 0, 0, "medido no relógio", { class: "ax", "text-anchor": "middle", transform: `translate(12 ${(m.t + H - m.b) / 2}) rotate(-90)` });
+    const sem = C.filter(c => c.est < 1.05 && c.real < 2);
+    const postos = [];
+    const pontos = C.map(c => [x(c.est), y(c.real)]);
+    for (const c of [...C].sort((a, b) => a.est - b.est)) {
+      const g = el("g", { class: "hit", "aria-label": `${rotulo(c)}: estimado ${vezes(c.est)}, medido ${vezes(c.real)}` }, s);
+      el("circle", { cx: x(c.est), cy: y(c.real), r: 12, fill: "transparent" }, g);
+      el("circle", { class: "mark", cx: x(c.est), cy: y(c.real), r: 5, fill: "var(--series-1)", stroke: "var(--surface-1)", "stroke-width": 2 }, g);
+      if (c.real >= 2) {
+        // primeira posição livre entre quatro em volta do ponto
+        const px = x(c.est), py = y(c.real);
+        const opcoes = [[8, -6, "start"], [8, 14, "start"], [-8, -6, "end"], [-8, 14, "end"]];
+        // caixa do rótulo (~24×12 px) não pode cobrir outro rótulo nem outro ponto
+        const caixa = (dx, dy, anc) => { const x0 = anc === "start" ? px + dx : px + dx - 24; return [x0 - 2, py + dy - 11, x0 + 26, py + dy + 3]; };
+        const bate = ([a, b, c, d]) => postos.some(([e, f, g2, h]) => a < g2 && e < c && b < h && f < d)
+          || pontos.some(([qx, qy]) => (qx !== px || qy !== py) && qx + 6 > a && qx - 6 < c && qy + 6 > b && qy - 6 < d);
+        const [dx, dy, anc] = opcoes.find(o => !bate(caixa(...o))) || opcoes[0];
+        postos.push(caixa(dx, dy, anc));
+        txt(g, px + dx, py + dy, c.id, { class: "val", "text-anchor": anc });
+      }
+      interativo(g, () => [`${vezes(c.real)} medido`, `${vezes(c.est)} estimado`, c.descricao]);
+    }
+    txt(s, x(1) + 12, y(1) + 4, `← ${sem.length} consultas sem ganho`, { class: "ax" });
+    document.getElementById("dispersao").replaceChildren(s);
+  })();
+
+  // ── rodadas ──
+  (() => {
+    const itens = [{ nome: "Sem índice secundário", v: 1 }]
+      .concat(D.rodadas.map(r => ({ nome: "+ " + r.indice, v: r.custo / D.custo_inicial })))
+      .concat([{ nome: "Medido no relógio", v: D.carga_depois_s / D.carga_antes_s, real: true }]);
+    const W = 480, esq = 200, linha = 30, H = itens.length * linha + 26;
+    const x = v => esq + v * (W - esq - 60);
+    const s = svg(W, H, "Custo da carga depois de cada rodada do guloso");
+    for (const t of [0, 0.5, 1]) {
+      el("line", { x1: x(t), x2: x(t), y1: 0, y2: H - 20, stroke: "var(--grid)" }, s);
+      txt(s, x(t), H - 6, pct(t).replace(",0", ""), { class: "ax", "text-anchor": "middle" });
+    }
+    itens.forEach((it, i) => {
+      const y = i * linha + 6, w = Math.max(2, x(it.v) - x(0)), r = Math.min(4, w);
+      if (it.real) el("line", { x1: 0, x2: W, y1: y - 4, y2: y - 4, stroke: "var(--axis)" }, s);
+      const g = el("g", { class: "hit" }, s);
+      el("rect", { x: 0, y, width: W, height: linha - 4, fill: "transparent" }, g);
+      txt(g, esq - 10, y + 15, it.nome, { "text-anchor": "end" });
+      el("path", { class: "mark", fill: it.real ? "var(--series-2)" : "var(--series-1)",
+        d: `M${x(0)},${y + 4} h${w - r} a${r},${r} 0 0 1 ${r},${r} v${14 - 2 * r} a${r},${r} 0 0 1 -${r},${r} h-${w - r} z` }, g);
+      txt(g, x(0) + w + 6, y + 15, pct(it.v), { class: "val" });
+      interativo(g, () => [pct(it.v), it.real ? "Tempo real da carga, relativo ao banco sem índices" : "Custo estimado da carga, relativo ao banco sem índices", it.nome]);
+    });
+    document.getElementById("rodadas").replaceChildren(s);
+  })();
+
+  // ── tamanhos ──
+  (() => {
+    const W = 480, esq = 200, linha = 52, H = D.rodadas.length * linha + 26;
+    const max = Math.max(...D.rodadas.map(r => r.tamanho_estimado));
+    const x = v => esq + v / max * (W - esq - 70);
+    const s = svg(W, H, "Tamanho estimado e real de cada índice");
+    D.rodadas.forEach((r, i) => {
+      const y = i * linha + 4;
+      txt(s, esq - 10, y + 22, r.indice, { "text-anchor": "end" });
+      [[r.tamanho_estimado, "var(--series-1)", "estimado"], [r.tamanho_real, "var(--series-2)", "real"]].forEach(([v, cor, tipo], k) => {
+        const by = y + 4 + k * 18, w = Math.max(2, x(v) - esq), rr = Math.min(4, w);
+        const g = el("g", { class: "hit" }, s);
+        el("rect", { x: esq, y: by - 1, width: W - esq, height: 18, fill: "transparent" }, g);
+        el("path", { class: "mark", fill: cor, d: `M${esq},${by} h${w - rr} a${rr},${rr} 0 0 1 ${rr},${rr} v${14 - 2 * rr} a${rr},${rr} 0 0 1 -${rr},${rr} h-${w - rr} z` }, g);
+        txt(g, esq + w + 6, by + 11, mb(v), { class: "val" });
+        interativo(g, () => [mb(v), `${tipo === "estimado" ? "Estimado pela HypoPG" : "Real"}: ${r.indice}`,
+          tipo === "real" ? `${fmt(r.tamanho_estimado / r.tamanho_real)} vezes menor que o estimado` : ""].filter(Boolean));
+      });
+    });
+    document.getElementById("tamanhos").replaceChildren(s);
+  })();
+
+  // ── tabela ──
+  (() => {
+    const t = document.getElementById("tabela");
+    const hd = t.createTHead().insertRow();
+    for (const [h, n] of [["Consulta", 0], ["O que faz", 0], ["Peso", 1], ["Antes", 1], ["Depois", 1], ["s/h antes", 1], ["s/h depois", 1], ["Medido", 1], ["Estimado", 1]]) {
+      const th = node("th", h); if (n) th.className = "num"; hd.appendChild(th);
+    }
+    const tb = t.createTBody();
+    for (const c of C) {
+      const tr = tb.insertRow();
+      tr.appendChild(node("td", c.id));
+      const td = node("td");
+      td.appendChild(node("div", c.descricao));
+      const det = document.createElement("details");
+      det.appendChild(node("summary", c.usa.length ? "SQL · usa " + c.usa.join(", ") : "SQL · nenhum índice novo"));
+      det.appendChild(node("pre", c.sql));
+      td.appendChild(det);
+      tr.appendChild(td);
+      for (const v of [String(c.peso), ms(c.ms_antes), ms(c.ms_depois), fmt(c.peso * c.ms_antes / 1000), fmt(c.peso * c.ms_depois / 1000), vezes(c.real), vezes(c.est)])
+        tr.appendChild(node("td", v, "num"));
+    }
+    const ft = t.createTFoot().insertRow();
+    ft.appendChild(node("th", "Total"));
+    ft.appendChild(node("td", ""));
+    for (const v of ["", "", "", fmt(D.carga_antes_s), fmt(D.carga_depois_s), vezes(D.carga_antes_s / D.carga_depois_s), ""]) ft.appendChild(node("td", v, "num"));
+  })();
+}
+
+iniciar().catch(err => document.querySelector("main").appendChild(node("p", "Não foi possível carregar os dados: " + err.message)));
+</script>
+</body>
+</html>

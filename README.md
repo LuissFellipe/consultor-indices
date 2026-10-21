@@ -7,6 +7,8 @@ hipotéticos** (HypoPG: o planejador enxerga, o disco não) e escolhe por um
 Microsoft. Depois **prova**: cria os escolhidos de verdade e mede o tempo real
 antes e depois.
 
+**Página com os gráficos:** https://luissfellipe.github.io/consultor-indices/
+
 Base: [Instacart Market Basket](https://www.kaggle.com/datasets/psparks/instacart-market-basket-analysis)
 — 3,4 milhões de pedidos, 33,8 milhões de itens, 49.688 produtos.
 
@@ -65,6 +67,7 @@ docker compose exec -T postgres psql -U consultor -d instacart -f - < db/carga.s
 uv run python -m consultor recomendar            # --orcamento-mb 1024 --limiar 0.01
 uv run python -m consultor provar                # cria os índices e mede antes/depois
 uv run python -m consultor limpar                # volta ao banco só com chaves primárias
+uv run python -m consultor site                  # site/data/resultados.json para a página
 ```
 
 O Kaggle precisa de token em `~/.kaggle/access_token`. A competição original

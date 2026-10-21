@@ -102,6 +102,36 @@ def cmd_provar(_):
          "carga_antes_s": tot_a / 1000, "carga_depois_s": tot_d / 1000}, indent=1))
 
 
+def cmd_site(_):
+    """Junta recomendação, prova e carga de trabalho num JSON para site/."""
+    import re
+
+    rec = json.loads((RESULTADOS / "recomendacao.json").read_text())
+    prova = json.loads((RESULTADOS / "prova.json").read_text())
+    consultas = []
+    for c in carga_de_trabalho():
+        texto = (RAIZ / "carga_trabalho" / f"{c.nome}.sql").read_text()
+        comentario = [l[2:].strip() for l in texto.splitlines() if l.startswith("--") and "peso:" not in l]
+        e = rec["consultas"][c.nome]
+        consultas.append({
+            "id": c.nome[:3], "nome": c.nome, "descricao": " ".join(comentario), "peso": c.peso, "sql": c.sql,
+            "custo_antes": e["custo_antes"], "custo_depois": e["custo_depois"], "usa": e["usa"],
+            "ms_antes": prova["antes_ms"][c.nome], "ms_depois": prova["depois_ms"][c.nome],
+        })
+    rodadas = [{"indice": f"{i['tabela']}({', '.join(i['colunas'])})", "custo": i["custo_depois"],
+                "tamanho_estimado": i["tamanho_estimado"],
+                "tamanho_real": prova["tamanhos"][f"{i['tabela']}({', '.join(i['colunas'])})"]["real"]}
+               for i in rec["indices"]]
+    saida = RAIZ / "site/data"
+    saida.mkdir(parents=True, exist_ok=True)
+    (saida / "resultados.json").write_text(json.dumps({
+        "custo_inicial": rec["custo_inicial"], "orcamento_mb": rec["orcamento_mb"], "limiar": rec["limiar"],
+        "rodadas": rodadas, "consultas": consultas,
+        "carga_antes_s": prova["carga_antes_s"], "carga_depois_s": prova["carga_depois_s"],
+    }, ensure_ascii=False, indent=1))
+    print(f"site/data/resultados.json: {len(consultas)} consultas, {len(rodadas)} índices")
+
+
 def main():
     p = argparse.ArgumentParser(prog="consultor")
     sub = p.add_subparsers(required=True)
@@ -112,6 +142,7 @@ def main():
     r.set_defaults(f=cmd_recomendar)
     sub.add_parser("provar").set_defaults(f=cmd_provar)
     sub.add_parser("limpar").set_defaults(f=cmd_limpar)
+    sub.add_parser("site").set_defaults(f=cmd_site)
     args = p.parse_args()
     args.f(args)
 
