@@ -1,17 +1,19 @@
 {
- "custo_inicial": 180564246.98000002,
+ "custo_inicial": 180716743.13,
  "orcamento_mb": 1024,
  "limiar": 0.01,
+ "candidatos": 35,
+ "explains": 528,
  "rodadas": [
   {
    "indice": "orders(user_id)",
-   "custo": 114232884.18,
+   "custo": 114462950.72999999,
    "tamanho_estimado": 79446016,
    "tamanho_real": 27992064
   },
   {
    "indice": "order_products(product_id)",
-   "custo": 19375534.08,
+   "custo": 19738103.23,
    "tamanho_estimado": 785432576,
    "tamanho_real": 238149632
   }
@@ -37,8 +39,8 @@
    "descricao": "\"Pedir de novo\": itens do último pedido do usuário, com o nome do produto.",
    "peso": 400.0,
    "sql": "SELECT p.product_name, op.add_to_cart_order\nFROM orders o\nJOIN order_products op ON op.order_id = o.order_id\nJOIN products p ON p.product_id = op.product_id\nWHERE o.user_id = 9973\n  AND o.order_number = (SELECT max(order_number) FROM orders WHERE user_id = 9973 AND eval_set = 'prior')\nORDER BY op.add_to_cart_order",
-   "custo_antes": 78907.08,
-   "custo_depois": 236.12,
+   "custo_antes": 78920.49,
+   "custo_depois": 249.54,
    "usa": [
     "orders(user_id)"
    ],
@@ -51,8 +53,8 @@
    "descricao": "Controle: itens de um pedido. A chave primária (order_id, add_to_cart_order) já resolve; um consultor que sugira índice aqui está errado.",
    "peso": 800.0,
    "sql": "SELECT product_id, add_to_cart_order, reordered\nFROM order_products\nWHERE order_id = 2539329\nORDER BY add_to_cart_order",
-   "custo_antes": 214.43,
-   "custo_depois": 214.43,
+   "custo_antes": 227.79,
+   "custo_depois": 227.79,
    "usa": [],
    "ms_antes": 0.01,
    "ms_depois": 0.009
@@ -63,8 +65,8 @@
    "descricao": "Quantos pedidos levaram um produto de nicho (abacate orgânico em saco).",
    "peso": 120.0,
    "sql": "SELECT count(DISTINCT order_id)\nFROM order_products\nWHERE product_id = 1374",
-   "custo_antes": 322422.75,
-   "custo_depois": 9219.88,
+   "custo_antes": 322421.66,
+   "custo_depois": 9191.01,
    "usa": [
     "order_products(product_id)"
    ],
@@ -77,8 +79,8 @@
    "descricao": "Página do produto: taxa de recompra.",
    "peso": 150.0,
    "sql": "SELECT avg(reordered::int) AS taxa_recompra, count(*) AS vendas\nFROM order_products\nWHERE product_id = 1374",
-   "custo_antes": 322099.09,
-   "custo_depois": 9087.73,
+   "custo_antes": 322099.07,
+   "custo_depois": 9059.34,
    "usa": [
     "order_products(product_id)"
    ],
@@ -91,8 +93,8 @@
    "descricao": "Os 20 produtos mais vendidos do corredor \"energy granola bars\".",
    "peso": 20.0,
    "sql": "SELECT p.product_id, p.product_name, count(*) AS vendas\nFROM products p\nJOIN order_products op ON op.product_id = p.product_id\nWHERE p.aisle_id = 3\nGROUP BY p.product_id, p.product_name\nORDER BY vendas DESC\nLIMIT 20",
-   "custo_antes": 325456.28,
-   "custo_depois": 106926.65,
+   "custo_antes": 325466.54,
+   "custo_depois": 107398.54,
    "usa": [
     "order_products(product_id)"
    ],
@@ -105,8 +107,8 @@
    "descricao": "\"Quem comprou abacate orgânico também levou\": produtos nos mesmos pedidos.",
    "peso": 30.0,
    "sql": "SELECT op2.product_id, count(*) AS juntos\nFROM order_products op1\nJOIN order_products op2 ON op2.order_id = op1.order_id AND op2.product_id <> op1.product_id\nWHERE op1.product_id = 1374\nGROUP BY op2.product_id\nORDER BY juntos DESC\nLIMIT 10",
-   "custo_antes": 415553.69,
-   "custo_depois": 217196.72,
+   "custo_antes": 418881.24,
+   "custo_depois": 224886.24,
    "usa": [
     "order_products(product_id)"
    ],
@@ -131,8 +133,8 @@
    "descricao": "Os produtos que o usuário mais recompra (base de uma recomendação).",
    "peso": 200.0,
    "sql": "SELECT op.product_id, count(*) AS vezes\nFROM orders o\nJOIN order_products op ON op.order_id = o.order_id\nWHERE o.user_id = 183981 AND op.reordered\nGROUP BY op.product_id\nORDER BY vezes DESC\nLIMIT 15",
-   "custo_antes": 38752.12,
-   "custo_depois": 6644.89,
+   "custo_antes": 38883.77,
+   "custo_depois": 7053.4,
    "usa": [
     "orders(user_id)"
    ],
@@ -159,8 +161,8 @@
    "descricao": "Clientes que compram de 30 em 30 dias aos domingos (campanha de e-mail).",
    "peso": 10.0,
    "sql": "SELECT count(DISTINCT user_id)\nFROM orders\nWHERE days_since_prior_order = 30 AND order_dow = 0",
-   "custo_antes": 48713.01,
-   "custo_depois": 48713.01,
+   "custo_antes": 48768.75,
+   "custo_depois": 48768.75,
    "usa": [],
    "ms_antes": 67.734,
    "ms_depois": 67.755
@@ -171,8 +173,8 @@
    "descricao": "Primeiro pedido feito de madrugada (0h–4h).",
    "peso": 5.0,
    "sql": "SELECT count(*)\nFROM orders\nWHERE order_number = 1 AND order_hour_of_day BETWEEN 0 AND 4",
-   "custo_antes": 42106.34,
-   "custo_depois": 42106.34,
+   "custo_antes": 42106.58,
+   "custo_depois": 42106.58,
    "usa": [],
    "ms_antes": 62.76,
    "ms_depois": 63.173
@@ -183,8 +185,8 @@
    "descricao": "Como a cesta do usuário se divide entre departamentos.",
    "peso": 80.0,
    "sql": "SELECT d.department, count(*) AS itens\nFROM orders o\nJOIN order_products op ON op.order_id = o.order_id\nJOIN products p ON p.product_id = op.product_id\nJOIN departments d ON d.department_id = p.department_id\nWHERE o.user_id = 183981\nGROUP BY d.department\nORDER BY itens DESC",
-   "custo_antes": 38770.73,
-   "custo_depois": 6755.07,
+   "custo_antes": 38902.83,
+   "custo_depois": 7164.6,
    "usa": [
     "orders(user_id)"
    ],
@@ -209,8 +211,8 @@
    "descricao": "Recompra média dos produtos congelados mais vendidos.",
    "peso": 15.0,
    "sql": "SELECT p.product_name, count(*) AS vendas, avg(op.reordered::int) AS recompra\nFROM products p\nJOIN order_products op ON op.product_id = p.product_id\nWHERE p.department_id = 1\nGROUP BY p.product_name\nORDER BY vendas DESC\nLIMIT 10",
-   "custo_antes": 333538.12,
-   "custo_depois": 333538.12,
+   "custo_antes": 333477.43,
+   "custo_depois": 333477.43,
    "usa": [],
    "ms_antes": 639.754,
    "ms_depois": 658.197

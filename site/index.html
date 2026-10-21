@@ -77,6 +77,12 @@ ol.passos { padding-left: 20px; color: var(--text-secondary); }
 ol.passos li { margin-bottom: 6px; }
 ol.passos strong { color: var(--text-primary); }
 footer { color: var(--text-muted); font-size: 13px; margin-top: 40px; }
+.perguntas { display: grid; grid-template-columns: 1fr 1fr; gap: 4px 28px; margin: 0; }
+@media (max-width: 860px) { .perguntas { grid-template-columns: 1fr; } }
+.perguntas div { padding: 10px 0; border-top: 1px solid var(--grid); }
+.perguntas dt { font-weight: 600; }
+.perguntas dd { margin: 2px 0 0; color: var(--text-secondary); font-size: 14px; }
+.perguntas dd code { color: var(--text-primary); }
 </style>
 </head>
 <body>
@@ -87,6 +93,13 @@ footer { color: var(--text-muted); font-size: 13px; margin-top: 40px; }
     <div class="hero"><span class="num" id="hero"></span><span class="txt" id="hero-txt"></span></div>
     <div class="tiles" id="tiles"></div>
   </header>
+
+  <section class="card" aria-labelledby="t-perguntas">
+    <h2 id="t-perguntas">Que perguntas o consultor responde</h2>
+    <div class="sub">Dadas as consultas que o sistema roda e quantas vezes por hora cada uma roda. Respostas desta base, tiradas dos dados mostrados abaixo.</div>
+    <dl class="perguntas" id="perguntas"></dl>
+    <p class="note">O que ele não responde: o custo que um índice impõe a <code>INSERT</code> e <code>UPDATE</code> (a carga aqui é só de leitura), índices que não sejam B-tree (GIN, trigram, <code>text_pattern_ops</code>) e qual seria o melhor conjunto possível. O guloso acha um conjunto bom, não necessariamente o ótimo.</p>
+  </section>
 
   <section class="card" aria-labelledby="t-consultas">
     <h2 id="t-consultas">Cada consulta, antes e depois</h2>
@@ -204,6 +217,44 @@ async function iniciar() {
   ];
   const T = document.getElementById("tiles");
   for (const [l, v] of tiles) { const d = node("div", null, "tile"); d.append(node("div", l, "label"), node("div", String(v), "value")); T.appendChild(d); }
+
+  // ── perguntas: respostas montadas a partir dos dados ──
+  (() => {
+    const dl = document.getElementById("perguntas");
+    const idx = D.rodadas.map(r => r.indice);
+    const semGanho = C.filter(c => c.est < 1.05);
+    const melhor = [...C].sort((a, b) => b.real - a.real)[0];
+    const porIndice = idx.map(i => `${i}: ${C.filter(c => c.usa.includes(i)).map(c => c.id).join(", ")}`);
+    const real = D.rodadas.reduce((a, r) => a + r.tamanho_real, 0), est = D.rodadas.reduce((a, r) => a + r.tamanho_estimado, 0);
+    const K = D.calibracao || [];
+    const certo = K.find(k => k.random_page_cost === 2);
+    const nocivo = K.find(k => k.regressoes.length);
+    const regressoes = C.filter(c => c.ms_depois > 1.2 * c.ms_antes && c.ms_depois - c.ms_antes > 1);
+    const itens = [
+      ["Que índices eu crio?", `${idx.join(" e ")}. Dos ${D.candidatos} candidatos testados para as ${C.length} consultas, só esses passam do ganho mínimo de ${pct(D.limiar).replace(",0", "")} por rodada.`],
+      ["Em que ordem, e quanto cada um vale?",
+        D.rodadas.map((r, i) => `${i + 1}º ${r.indice}: custo da carga cai para ${pct(r.custo / D.custo_inicial)}`).join("; ") + "."
+        + (D.rodadas.length > 1 && (1 - D.rodadas[0].custo / D.custo_inicial) < (D.rodadas[0].custo - D.rodadas[1].custo) / D.custo_inicial
+          ? ` O primeiro ganha menos que o segundo, mas entra antes porque ocupa ${fmt(D.rodadas[1].tamanho_estimado / D.rodadas[0].tamanho_estimado, 0)} vezes menos espaço: o critério é ganho por byte.` : "")],
+      ["Qual consulta cada índice atende?", porIndice.join(" · ")],
+      ["Onde nenhum índice ajuda?", `${semGanho.map(c => c.id).join(", ")}: a chave primária já resolve, a consulta lê a tabela inteira, o filtro é pouco seletivo, ou o LIKE precisaria de outro tipo de índice.`],
+      ["Quanto espaço vou gastar?", `${mb(real)} de fato. A estimativa era ${mb(est)}: a HypoPG não considera a deduplicação do B-tree. O orçamento é configurável (--orcamento-mb).`],
+      ["O ganho previsto se confirma?", (() => {
+        const medido = D.carga_depois_s / D.carga_antes_s, previsto = D.rodadas.length ? D.rodadas.at(-1).custo / D.custo_inicial : 1;
+        const como = medido <= previsto ? "Sim, e maior que o previsto" : "Em parte: menor que o previsto";
+        return `${como} (${pct(previsto)} estimado, ${pct(medido)} medido): a carga foi de ${fmt(D.carga_antes_s)} s para ${fmt(D.carga_depois_s)} s por hora. O maior ganho foi na ${melhor.id}, ${vezes(melhor.real)}.`;
+      })()],
+      ["Algum índice piora alguma consulta?", regressoes.length ? `Sim: ${regressoes.map(c => c.id).join(", ")}.` : "Não, com os índices recomendados nenhuma consulta ficou mais lenta. O provar marca REGRESSÃO quando isso acontece."],
+      ["Posso confiar na estimativa do planejador?",
+        (certo ? `Para a carga inteira, com random_page_cost = 2: ${pct(certo.estimada)} estimado, ${pct(certo.medida)} medido. ` : "")
+        + (nocivo ? `Com valor menor, não: ele recomenda ${nocivo.recomendados[2]} e a carga medida dobra (${pct(nocivo.medida)}).` : "")],
+    ];
+    for (const [q, r] of itens) {
+      const d = node("div");
+      d.append(node("dt", q), node("dd", r));
+      dl.appendChild(d);
+    }
+  })();
 
   // ── haltere: antes × depois por consulta, escala log ──
   (() => {

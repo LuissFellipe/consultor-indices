@@ -12,6 +12,25 @@ antes e depois.
 Base: [Instacart Market Basket](https://www.kaggle.com/datasets/psparks/instacart-market-basket-analysis)
 — 3,4 milhões de pedidos, 33,8 milhões de itens, 49.688 produtos.
 
+## Que perguntas ele responde
+
+Dadas as consultas que o sistema roda e quantas vezes por hora cada uma roda:
+
+| Pergunta | Resposta nesta base |
+|---|---|
+| Que índices eu crio? | `orders(user_id)` e `order_products(product_id)`, entre 35 candidatos |
+| Em que ordem, e quanto cada um vale? | 1º `orders(user_id)`: custo da carga cai para 63,3%; 2º `order_products(product_id)`: 10,9%. O primeiro ganha menos, mas ocupa 10× menos espaço (critério: ganho por byte) |
+| Qual consulta cada índice atende? | `orders(user_id)`: q01, q02, q09, q10, q13 · `order_products(product_id)`: q04, q05, q06, q07 |
+| Onde nenhum índice ajuda? | q03, q08, q11, q12, q14, q15 — chave primária já resolve, leitura da tabela inteira, filtro pouco seletivo ou `LIKE` sem o índice certo |
+| Quanto espaço vou gastar? | 253,8 MB reais (a HypoPG estimou 824,8 MB). Orçamento configurável com `--orcamento-mb` |
+| O ganho previsto se confirma? | Sim, e maior: 170,0 s → 13,9 s de consulta por hora (8,2% medido × 10,9% estimado) |
+| Algum índice piora alguma consulta? | Com os recomendados, não. O `provar` marca REGRESSÃO quando acontece |
+| Posso confiar na estimativa do planejador? | Para a carga inteira, com `random_page_cost = 2`. Com valor menor, não: ele recomenda um terceiro índice e a carga medida dobra |
+
+Não responde: o custo do índice na escrita (`INSERT`/`UPDATE`), índices que
+não sejam B-tree, e qual seria o conjunto ótimo — o guloso acha um bom, não
+necessariamente o melhor.
+
 ## Resultado
 
 Carga de 15 consultas ponderadas por frequência, Postgres 17, a partir do banco
@@ -19,8 +38,11 @@ só com chaves primárias:
 
 | | Planejador (estimado) | Relógio (medido) |
 |---|---|---|
-| Custo da carga por hora | 10,7% do original | **170,0 s → 13,9 s (8,2%)** |
+| Custo da carga por hora | 10,9% do original¹ | **170,0 s → 13,9 s (8,2%)** |
 | Índices escolhidos | `orders(user_id)`, `order_products(product_id)` | criados em 0,4 s e 8,4 s |
+
+¹ Entre 10,7% e 10,9% conforme a rodada: o `ANALYZE` amostra a tabela, e as
+estatísticas mudam um pouco a cada vez. Os índices escolhidos não mudam.
 
 - Consultas por usuário: ~50 ms → < 0,3 ms. Por produto: ~230 ms → ~2 ms.
 - As seis consultas em que o consultor previu ganho nenhum (chave primária já

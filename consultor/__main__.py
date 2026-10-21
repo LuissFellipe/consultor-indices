@@ -66,6 +66,7 @@ def cmd_recomendar(args):
     RESULTADOS.mkdir(exist_ok=True)
     (RESULTADOS / "recomendacao.json").write_text(json.dumps({
         "orcamento_mb": args.orcamento_mb, "limiar": args.limiar, "custo_inicial": inicial,
+        "candidatos": len(todos), "explains": av.explains,
         "indices": [{"tabela": r.indice.tabela, "colunas": r.indice.colunas, "tamanho_estimado": r.tamanho,
                      "ganho": r.ganho, "custo_depois": r.custo_depois} for r in rodadas],
         "consultas": por_consulta,
@@ -176,6 +177,7 @@ def cmd_site(_):
     saida.mkdir(parents=True, exist_ok=True)
     (saida / "resultados.json").write_text(json.dumps({
         "custo_inicial": rec["custo_inicial"], "orcamento_mb": rec["orcamento_mb"], "limiar": rec["limiar"],
+        "candidatos": rec.get("candidatos"), "explains": rec.get("explains"),
         "rodadas": rodadas, "consultas": consultas, "calibracao": calibracao,
         "carga_antes_s": prova["carga_antes_s"], "carga_depois_s": prova["carga_depois_s"],
     }, ensure_ascii=False, indent=1))
