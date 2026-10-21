@@ -23,21 +23,48 @@ só com chaves primárias:
 | Índices escolhidos | `orders(user_id)`, `order_products(product_id)` | criados em 0,4 s e 8,4 s |
 
 - Consultas por usuário: ~50 ms → < 0,3 ms. Por produto: ~230 ms → ~2 ms.
-- As cinco consultas que o consultor disse que **não** melhorariam (agregação
-  sem filtro, filtro pouco seletivo, `LIKE` sem opclass, departamento com
-  produtos demais) de fato não melhoraram — saber dizer "não crie" é metade do
-  trabalho.
+- As seis consultas em que o consultor previu ganho nenhum (chave primária já
+  resolve, agregação sem filtro, filtros pouco seletivos, `LIKE` sem opclass
+  com collation `en_US.utf8`, departamento com produtos demais) de fato não
+  melhoraram — saber dizer "não crie" é metade do trabalho.
 - 35 candidatos, 528 EXPLAINs, 0,3 s de busca.
 
 ### O que a medição mostrou e a estimativa não
 
-- **A HypoPG superestima o tamanho em ~3×** (75,8 MB estimados × 26,7 MB
-  reais; 749 × 227 MB). Desde o Postgres 13 o B-tree deduplica chaves
-  repetidas, e a HypoPG não modela isso. O orçamento fica conservador demais.
-- **O planejador subestima o ganho**, às vezes em uma ordem de grandeza (q07:
-  ×1,9 estimado, ×10,1 real; q09: ×5,8 × ×185). A ordem dos ganhos está certa;
-  a magnitude, não. Hipótese: `random_page_cost = 4` (padrão, pensado para
-  disco giratório) com a base inteira em memória.
+- **A HypoPG estima o tamanho sem deduplicação.** 75,8 MB estimados × 26,7 MB
+  reais; 749 × 227 MB. Criados com `deduplicate_items = off`, os mesmos
+  índices ocupam 73 e 725 MB — a 4% da estimativa. O B-tree deduplica chave
+  repetida desde o Postgres 13, e a HypoPG não modela isso. O orçamento fica
+  conservador demais, mas o **custo** quase não muda: o erro de estimativa
+  com o índice hipotético e com o real é o mesmo (ver calibração).
+- **O planejador subestima o ganho** no padrão (q07: ×1,9 estimado, ×10,1
+  real; q09: ×5,8 × ×185). A ordem dos ganhos está certa; a magnitude, não.
+
+### Calibração do `random_page_cost`
+
+`uv run python -m consultor calibrar` refaz a recomendação para cada valor,
+cria o conjunto recomendado e mede (resultado em `resultados/calibracao.json`):
+
+| `random_page_cost` | Recomendados | Carga estimada | Carga medida |
+|---|---|---|---|
+| 4 (padrão) | 2 índices | 10,9% | 7,3% |
+| **2** | 2 índices | **7,8%** | **7,5%** |
+| 1,5 | 3 índices | 6,8% | **15,7%** ⚠ |
+| 1,1 | 3 índices | 5,8% | **15,8%** ⚠ |
+| 1 | 3 índices | 5,6% | **15,6%** ⚠ |
+
+- **Com 2, a estimativa da carga inteira acerta** nesta máquina (base toda em
+  memória). Consulta a consulta, o erro continua em torno de meia ordem de
+  grandeza — e esse número varia entre rodadas, porque consultas de décimos
+  de milissegundo são dominadas por ruído; não é medida confiável.
+- **Abaixo de 2, o consultor recomenda um índice que piora o sistema.** Ele
+  acrescenta `products(product_id, department_id, product_name)`, e na q15 o
+  planejador troca o hash join paralelo (4 workers, leitura sequencial) por
+  um laço aninhado com 4.007 buscas no índice de `order_products`: a consulta
+  fica ~2,5× mais lenta que sem índice nenhum, e a carga inteira dobra. O
+  custo estimado prometia 21% a menos. Só a prova no relógio pega isso.
+- `recomendar` e `provar` aceitam `--random-page-cost`; o `provar` marca
+  **REGRESSÃO** em consulta que fica mais lenta que sem índice.
 
 ## Como funciona
 
@@ -67,6 +94,7 @@ docker compose exec -T postgres psql -U consultor -d instacart -f - < db/carga.s
 uv run python -m consultor recomendar            # --orcamento-mb 1024 --limiar 0.01
 uv run python -m consultor provar                # cria os índices e mede antes/depois
 uv run python -m consultor limpar                # volta ao banco só com chaves primárias
+uv run python -m consultor calibrar              # testa random_page_cost 4, 2, 1,5, 1,1 e 1
 uv run python -m consultor site                  # site/data/resultados.json para a página
 ```
 
@@ -79,8 +107,9 @@ exige aceitar as regras no site; o espelho acima tem os mesmos arquivos
 - **Guloso não desfaz escolha.** Se `(product_id)` entra primeiro,
   `(product_id, order_id)` depois ganha pouco e não entra, mesmo que sozinho
   fosse melhor que o primeiro.
-- **Custo do planejador como função objetivo.** Herda os erros dele (ver
-  acima). Calibrar `random_page_cost` antes de recomendar é o próximo passo.
+- **Custo do planejador como função objetivo.** Herda os erros dele. Calibrar
+  o `random_page_cost` corrige a carga inteira, mas valor baixo demais leva a
+  recomendação ruim (ver calibração) — a prova no relógio não é opcional.
 - **Escrita não entra na conta.** Índice deixa `INSERT`/`UPDATE` mais caros; a
   carga aqui é só leitura.
 - **Só B-tree.** `LIKE 'prefixo%'` pediria `text_pattern_ops`; busca textual

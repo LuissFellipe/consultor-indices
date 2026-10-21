@@ -216,6 +216,67 @@
    "ms_depois": 658.197
   }
  ],
+ "calibracao": [
+  {
+   "random_page_cost": 4.0,
+   "recomendados": [
+    "orders(user_id)",
+    "order_products(product_id)"
+   ],
+   "estimada": 0.10892071008096946,
+   "medida": 0.07290836968546958,
+   "regressoes": []
+  },
+  {
+   "random_page_cost": 2.0,
+   "recomendados": [
+    "orders(user_id)",
+    "order_products(product_id)"
+   ],
+   "estimada": 0.07763241647258289,
+   "medida": 0.07508950767216101,
+   "regressoes": []
+  },
+  {
+   "random_page_cost": 1.5,
+   "recomendados": [
+    "orders(user_id)",
+    "order_products(product_id)",
+    "products(product_id, department_id, product_name)"
+   ],
+   "estimada": 0.0681926519860575,
+   "medida": 0.15703824597738814,
+   "regressoes": [
+    "q15_vendas_departamento_produto"
+   ]
+  },
+  {
+   "random_page_cost": 1.1,
+   "recomendados": [
+    "orders(user_id)",
+    "order_products(product_id)",
+    "products(product_id, department_id, product_name)"
+   ],
+   "estimada": 0.0583008946184617,
+   "medida": 0.157771064122616,
+   "regressoes": [
+    "q15_vendas_departamento_produto"
+   ]
+  },
+  {
+   "random_page_cost": 1.0,
+   "recomendados": [
+    "orders(user_id)",
+    "order_products(product_id)",
+    "products(product_id, department_id, product_name)"
+   ],
+   "estimada": 0.05578293708803392,
+   "medida": 0.15602323876921478,
+   "regressoes": [
+    "q15_vendas_departamento_produto"
+   ]
+  }
+ ],
  "carga_antes_s": 170.047596,
  "carga_depois_s": 13.902098
 }

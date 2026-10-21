@@ -1,0 +1,694 @@
+{
+ "valores": [
+  4.0,
+  2.0,
+  1.5,
+  1.1,
+  1.0
+ ],
+ "config": [
+  "orders(user_id)",
+  "order_products(product_id)"
+ ],
+ "por_valor": {
+  "4.0": {
+   "recomendados": [
+    "orders(user_id)",
+    "order_products(product_id)"
+   ],
+   "custo_inicial": 180657271.38,
+   "custo_final_recomendado": 19677318.28,
+   "consultas": {
+    "q01_historico_usuario": {
+     "custo_sem": 36587.08,
+     "custo_hipo": 9.29,
+     "ms_sem": 50.137,
+     "custo_real": 9.67,
+     "ms_com": 0.038
+    },
+    "q02_ultimo_pedido_itens": {
+     "custo_sem": 78915.45,
+     "custo_hipo": 244.49,
+     "ms_sem": 99.105,
+     "custo_real": 250.29,
+     "ms_com": 0.034
+    },
+    "q03_itens_do_pedido": {
+     "custo_sem": 222.76,
+     "custo_hipo": 222.76,
+     "ms_sem": 0.012,
+     "custo_real": 227.79,
+     "ms_com": 0.009
+    },
+    "q04_pedidos_com_produto": {
+     "custo_sem": 322422.41,
+     "custo_hipo": 9219.88,
+     "ms_sem": 265.286,
+     "custo_real": 9175.38,
+     "ms_com": 1.518
+    },
+    "q05_taxa_recompra_produto": {
+     "custo_sem": 322098.75,
+     "custo_hipo": 9087.73,
+     "ms_sem": 273.806,
+     "custo_real": 9043.71,
+     "ms_com": 1.126
+    },
+    "q06_top_produtos_corredor": {
+     "custo_sem": 325455.94,
+     "custo_hipo": 110594.77,
+     "ms_sem": 533.89,
+     "custo_real": 87461.14,
+     "ms_com": 40.844
+    },
+    "q07_comprados_juntos": {
+     "custo_sem": 417620.01,
+     "custo_hipo": 222160.92,
+     "ms_sem": 278.336,
+     "custo_real": 224870.61,
+     "ms_com": 24.645
+    },
+    "q08_pedidos_por_hora": {
+     "custo_sem": 42176.59,
+     "custo_hipo": 42176.59,
+     "ms_sem": 120.708,
+     "custo_real": 42176.59,
+     "ms_com": 120.501
+    },
+    "q09_favoritos_usuario": {
+     "custo_sem": 38834.13,
+     "custo_hipo": 6899.52,
+     "ms_sem": 49.194,
+     "custo_real": 7053.78,
+     "ms_com": 0.362
+    },
+    "q10_pedido_treino_usuario": {
+     "custo_sem": 39344.73,
+     "custo_hipo": 8.67,
+     "ms_sem": 48.912,
+     "custo_real": 9.05,
+     "ms_com": 0.008
+    },
+    "q11_clientes_mensais": {
+     "custo_sem": 48529.99,
+     "custo_hipo": 48529.99,
+     "ms_sem": 62.641,
+     "custo_real": 48768.75,
+     "ms_com": 62.578
+    },
+    "q12_primeiros_pedidos_madrugada": {
+     "custo_sem": 42106.6,
+     "custo_hipo": 42106.6,
+     "ms_sem": 58.622,
+     "custo_real": 42106.58,
+     "ms_com": 59.379
+    },
+    "q13_cesta_departamento_usuario": {
+     "custo_sem": 38853.09,
+     "custo_hipo": 7010.41,
+     "ms_sem": 48.744,
+     "custo_real": 7173.36,
+     "ms_com": 1.231
+    },
+    "q14_busca_produto": {
+     "custo_sem": 1082.17,
+     "custo_hipo": 1082.17,
+     "ms_sem": 2.528,
+     "custo_real": 1082.17,
+     "ms_com": 2.113
+    },
+    "q15_vendas_departamento_produto": {
+     "custo_sem": 333535.42,
+     "custo_hipo": 333535.42,
+     "ms_sem": 679.07,
+     "custo_real": 333535.78,
+     "ms_com": 673.837
+    }
+   },
+   "resumo": {
+    "consultas_com_ganho": 9,
+    "erro_mediano_hipo": 0.7787269249401131,
+    "erro_mediano_real": 0.78399195771171,
+    "carga_estimada_hipo": 0.10892071008096946,
+    "carga_estimada_real": 0.10703629105150277,
+    "carga_medida": 0.07290836968546958,
+    "carga_medida_recomendado": 0.07290836968546958,
+    "regressoes": []
+   }
+  },
+  "2.0": {
+   "recomendados": [
+    "orders(user_id)",
+    "order_products(product_id)"
+   ],
+   "custo_inicial": 178919169.48,
+   "custo_final_recomendado": 13889927.48,
+   "consultas": {
+    "q01_historico_usuario": {
+     "custo_sem": 36587.08,
+     "custo_hipo": 5.29,
+     "ms_sem": 47.495,
+     "custo_real": 5.67,
+     "ms_com": 0.029
+    },
+    "q02_ultimo_pedido_itens": {
+     "custo_sem": 78805.19,
+     "custo_hipo": 126.23,
+     "ms_sem": 96.082,
+     "custo_real": 129.53,
+     "ms_com": 0.031
+    },
+    "q03_itens_do_pedido": {
+     "custo_sem": 112.5,
+     "custo_hipo": 112.5,
+     "ms_sem": 0.012,
+     "custo_real": 115.03,
+     "ms_com": 0.009
+    },
+    "q04_pedidos_com_produto": {
+     "custo_sem": 322422.41,
+     "custo_hipo": 4840.22,
+     "ms_sem": 260.503,
+     "custo_real": 4817.16,
+     "ms_com": 1.417
+    },
+    "q05_taxa_recompra_produto": {
+     "custo_sem": 322098.75,
+     "custo_hipo": 4708.06,
+     "ms_sem": 268.916,
+     "custo_real": 4685.49,
+     "ms_com": 1.217
+    },
+    "q06_top_produtos_corredor": {
+     "custo_sem": 325455.94,
+     "custo_hipo": 94256.71,
+     "ms_sem": 536.128,
+     "custo_real": 82363.08,
+     "ms_com": 40.93
+    },
+    "q07_comprados_juntos": {
+     "custo_sem": 374312.44,
+     "custo_hipo": 115860.35,
+     "ms_sem": 278.047,
+     "custo_real": 117271.35,
+     "ms_com": 27.242
+    },
+    "q08_pedidos_por_hora": {
+     "custo_sem": 42176.59,
+     "custo_hipo": 42176.59,
+     "ms_sem": 120.383,
+     "custo_real": 42176.59,
+     "ms_com": 120.539
+    },
+    "q09_favoritos_usuario": {
+     "custo_sem": 37739.26,
+     "custo_hipo": 3501.45,
+     "ms_sem": 48.004,
+     "custo_real": 3579.46,
+     "ms_com": 0.379
+    },
+    "q10_pedido_treino_usuario": {
+     "custo_sem": 39344.73,
+     "custo_hipo": 4.67,
+     "ms_sem": 49.327,
+     "custo_real": 5.05,
+     "ms_com": 0.011
+    },
+    "q11_clientes_mensais": {
+     "custo_sem": 48529.99,
+     "custo_hipo": 48529.99,
+     "ms_sem": 63.043,
+     "custo_real": 48768.75,
+     "ms_com": 62.816
+    },
+    "q12_primeiros_pedidos_madrugada": {
+     "custo_sem": 42106.6,
+     "custo_hipo": 42106.6,
+     "ms_sem": 59.002,
+     "custo_real": 42106.58,
+     "ms_com": 59.441
+    },
+    "q13_cesta_departamento_usuario": {
+     "custo_sem": 37758.23,
+     "custo_hipo": 3620.7,
+     "ms_sem": 48.528,
+     "custo_real": 3699.03,
+     "ms_com": 1.476
+    },
+    "q14_busca_produto": {
+     "custo_sem": 1082.17,
+     "custo_hipo": 1082.17,
+     "ms_sem": 2.403,
+     "custo_real": 1082.17,
+     "ms_com": 2.182
+    },
+    "q15_vendas_departamento_produto": {
+     "custo_sem": 333535.42,
+     "custo_hipo": 333535.42,
+     "ms_sem": 676.407,
+     "custo_real": 333535.78,
+     "ms_com": 671.941
+    }
+   },
+   "resumo": {
+    "consultas_com_ganho": 9,
+    "erro_mediano_hipo": 0.5091790139590022,
+    "erro_mediano_real": 0.5079822614442011,
+    "carga_estimada_hipo": 0.07763241647258289,
+    "carga_estimada_real": 0.07666089396604996,
+    "carga_medida": 0.07508950767216101,
+    "carga_medida_recomendado": 0.07508950767216101,
+    "regressoes": []
+   }
+  },
+  "1.5": {
+   "recomendados": [
+    "orders(user_id)",
+    "order_products(product_id)",
+    "products(product_id, department_id, product_name)"
+   ],
+   "custo_inicial": 178484647.18,
+   "custo_final_recomendado": 12171341.43,
+   "consultas": {
+    "q01_historico_usuario": {
+     "custo_sem": 36587.08,
+     "custo_hipo": 4.29,
+     "ms_sem": 47.659,
+     "custo_real": 4.67,
+     "ms_com": 0.03,
+     "ms_com_recomendado": 0.04
+    },
+    "q02_ultimo_pedido_itens": {
+     "custo_sem": 78777.62,
+     "custo_hipo": 96.67,
+     "ms_sem": 97.587,
+     "custo_real": 99.34,
+     "ms_com": 0.032,
+     "ms_com_recomendado": 0.033
+    },
+    "q03_itens_do_pedido": {
+     "custo_sem": 84.94,
+     "custo_hipo": 84.94,
+     "ms_sem": 0.013,
+     "custo_real": 86.84,
+     "ms_com": 0.009,
+     "ms_com_recomendado": 0.009
+    },
+    "q04_pedidos_com_produto": {
+     "custo_sem": 322422.41,
+     "custo_hipo": 3745.3,
+     "ms_sem": 261.03,
+     "custo_real": 3727.61,
+     "ms_com": 1.165,
+     "ms_com_recomendado": 1.143
+    },
+    "q05_taxa_recompra_produto": {
+     "custo_sem": 322098.75,
+     "custo_hipo": 3613.15,
+     "ms_sem": 268.274,
+     "custo_real": 3595.94,
+     "ms_com": 1.063,
+     "ms_com_recomendado": 1.037
+    },
+    "q06_top_produtos_corredor": {
+     "custo_sem": 325455.94,
+     "custo_hipo": 90172.2,
+     "ms_sem": 535.095,
+     "custo_real": 81088.57,
+     "ms_com": 40.707,
+     "ms_com_recomendado": 40.92
+    },
+    "q07_comprados_juntos": {
+     "custo_sem": 363485.55,
+     "custo_hipo": 89285.21,
+     "ms_sem": 279.163,
+     "custo_real": 90371.54,
+     "ms_com": 18.918,
+     "ms_com_recomendado": 19.126
+    },
+    "q08_pedidos_por_hora": {
+     "custo_sem": 42176.59,
+     "custo_hipo": 42176.59,
+     "ms_sem": 120.65,
+     "custo_real": 42176.59,
+     "ms_com": 120.261,
+     "ms_com_recomendado": 120.556
+    },
+    "q09_favoritos_usuario": {
+     "custo_sem": 37465.55,
+     "custo_hipo": 2651.93,
+     "ms_sem": 48.167,
+     "custo_real": 2710.88,
+     "ms_com": 0.288,
+     "ms_com_recomendado": 0.299
+    },
+    "q10_pedido_treino_usuario": {
+     "custo_sem": 39344.73,
+     "custo_hipo": 3.68,
+     "ms_sem": 49.387,
+     "custo_real": 4.05,
+     "ms_com": 0.008,
+     "ms_com_recomendado": 0.008
+    },
+    "q11_clientes_mensais": {
+     "custo_sem": 48529.99,
+     "custo_hipo": 48529.99,
+     "ms_sem": 63.504,
+     "custo_real": 48768.75,
+     "ms_com": 62.772,
+     "ms_com_recomendado": 62.304
+    },
+    "q12_primeiros_pedidos_madrugada": {
+     "custo_sem": 42106.6,
+     "custo_hipo": 42106.6,
+     "ms_sem": 58.921,
+     "custo_real": 42106.58,
+     "ms_com": 58.998,
+     "ms_com_recomendado": 58.817
+    },
+    "q13_cesta_departamento_usuario": {
+     "custo_sem": 37484.51,
+     "custo_hipo": 2771.18,
+     "ms_sem": 49.981,
+     "custo_real": 2830.44,
+     "ms_com": 1.231,
+     "ms_com_recomendado": 1.335
+    },
+    "q14_busca_produto": {
+     "custo_sem": 1082.17,
+     "custo_hipo": 1082.17,
+     "ms_sem": 2.23,
+     "custo_real": 1082.17,
+     "ms_com": 2.019,
+     "ms_com_recomendado": 2.119
+    },
+    "q15_vendas_departamento_produto": {
+     "custo_sem": 333535.42,
+     "custo_hipo": 333535.42,
+     "ms_sem": 673.633,
+     "custo_real": 333535.78,
+     "ms_com": 672.427,
+     "ms_com_recomendado": 1730.516
+    }
+   },
+   "resumo": {
+    "consultas_com_ganho": 9,
+    "erro_mediano_hipo": 0.5592750094807089,
+    "erro_mediano_real": 0.5152292349908101,
+    "carga_estimada_hipo": 0.06971422907568872,
+    "carga_estimada_real": 0.06897461195967498,
+    "carga_medida": 0.07272964612646879,
+    "carga_medida_recomendado": 0.15703824597738814,
+    "regressoes": [
+     "q15_vendas_departamento_produto"
+    ]
+   }
+  },
+  "1.1": {
+   "recomendados": [
+    "orders(user_id)",
+    "order_products(product_id)",
+    "products(product_id, department_id, product_name)"
+   ],
+   "custo_inicial": 178137030.28,
+   "custo_final_recomendado": 10385548.23,
+   "consultas": {
+    "q01_historico_usuario": {
+     "custo_sem": 36587.08,
+     "custo_hipo": 3.49,
+     "ms_sem": 47.815,
+     "custo_real": 3.87,
+     "ms_com": 0.03,
+     "ms_com_recomendado": 0.031
+    },
+    "q02_ultimo_pedido_itens": {
+     "custo_sem": 78755.57,
+     "custo_hipo": 73.01,
+     "ms_sem": 96.341,
+     "custo_real": 75.19,
+     "ms_com": 0.03,
+     "ms_com_recomendado": 0.039
+    },
+    "q03_itens_do_pedido": {
+     "custo_sem": 62.89,
+     "custo_hipo": 62.89,
+     "ms_sem": 0.011,
+     "custo_real": 64.29,
+     "ms_com": 0.009,
+     "ms_com_recomendado": 0.01
+    },
+    "q04_pedidos_com_produto": {
+     "custo_sem": 322422.41,
+     "custo_hipo": 2888.56,
+     "ms_sem": 258.331,
+     "custo_real": 2875.1,
+     "ms_com": 0.649,
+     "ms_com_recomendado": 1.217
+    },
+    "q05_taxa_recompra_produto": {
+     "custo_sem": 322098.75,
+     "custo_hipo": 2756.41,
+     "ms_sem": 267.436,
+     "custo_real": 2743.44,
+     "ms_com": 0.534,
+     "ms_com_recomendado": 0.738
+    },
+    "q06_top_produtos_corredor": {
+     "custo_sem": 325455.94,
+     "custo_hipo": 86904.59,
+     "ms_sem": 534.27,
+     "custo_real": 80068.96,
+     "ms_com": 40.688,
+     "ms_com_recomendado": 40.682
+    },
+    "q07_comprados_juntos": {
+     "custo_sem": 354824.04,
+     "custo_hipo": 67158.99,
+     "ms_sem": 277.555,
+     "custo_real": 67973.01,
+     "ms_com": 18.901,
+     "ms_com_recomendado": 19.434
+    },
+    "q08_pedidos_por_hora": {
+     "custo_sem": 42176.59,
+     "custo_hipo": 42176.59,
+     "ms_sem": 120.509,
+     "custo_real": 42176.59,
+     "ms_com": 120.424,
+     "ms_com_recomendado": 124.628
+    },
+    "q09_favoritos_usuario": {
+     "custo_sem": 37246.58,
+     "custo_hipo": 1972.31,
+     "ms_sem": 49.015,
+     "custo_real": 2016.02,
+     "ms_com": 0.289,
+     "ms_com_recomendado": 0.562
+    },
+    "q10_pedido_treino_usuario": {
+     "custo_sem": 39344.73,
+     "custo_hipo": 2.88,
+     "ms_sem": 48.876,
+     "custo_real": 3.25,
+     "ms_com": 0.01,
+     "ms_com_recomendado": 0.01
+    },
+    "q11_clientes_mensais": {
+     "custo_sem": 48529.99,
+     "custo_hipo": 48529.99,
+     "ms_sem": 62.747,
+     "custo_real": 48768.75,
+     "ms_com": 62.399,
+     "ms_com_recomendado": 67.114
+    },
+    "q12_primeiros_pedidos_madrugada": {
+     "custo_sem": 42106.6,
+     "custo_hipo": 42106.6,
+     "ms_sem": 58.802,
+     "custo_real": 42106.58,
+     "ms_com": 59.049,
+     "ms_com_recomendado": 61.503
+    },
+    "q13_cesta_departamento_usuario": {
+     "custo_sem": 37265.54,
+     "custo_hipo": 2091.56,
+     "ms_sem": 49.223,
+     "custo_real": 2135.58,
+     "ms_com": 1.302,
+     "ms_com_recomendado": 1.272
+    },
+    "q14_busca_produto": {
+     "custo_sem": 1082.17,
+     "custo_hipo": 1082.17,
+     "ms_sem": 2.391,
+     "custo_real": 1082.17,
+     "ms_com": 2.43,
+     "ms_com_recomendado": 2.24
+    },
+    "q15_vendas_departamento_produto": {
+     "custo_sem": 333535.42,
+     "custo_hipo": 333535.42,
+     "ms_sem": 677.517,
+     "custo_real": 333535.78,
+     "ms_com": 676.48,
+     "ms_com_recomendado": 1723.693
+    }
+   },
+   "resumo": {
+    "consultas_com_ganho": 9,
+    "erro_mediano_hipo": 0.5448449583900474,
+    "erro_mediano_real": 0.5092664309805558,
+    "carga_estimada_hipo": 0.06323504642630556,
+    "carga_estimada_real": 0.0626796357975077,
+    "carga_medida": 0.07325979836779482,
+    "carga_medida_recomendado": 0.157771064122616,
+    "regressoes": [
+     "q15_vendas_departamento_produto"
+    ]
+   }
+  },
+  "1.0": {
+   "recomendados": [
+    "orders(user_id)",
+    "order_products(product_id)",
+    "products(product_id, department_id, product_name)"
+   ],
+   "custo_inicial": 178050118.88,
+   "custo_final_recomendado": 9932158.58,
+   "consultas": {
+    "q01_historico_usuario": {
+     "custo_sem": 36587.08,
+     "custo_hipo": 3.29,
+     "ms_sem": 47.527,
+     "custo_real": 3.67,
+     "ms_com": 0.032,
+     "ms_com_recomendado": 0.037
+    },
+    "q02_ultimo_pedido_itens": {
+     "custo_sem": 78750.06,
+     "custo_hipo": 67.1,
+     "ms_sem": 96.989,
+     "custo_real": 69.15,
+     "ms_com": 0.032,
+     "ms_com_recomendado": 0.033
+    },
+    "q03_itens_do_pedido": {
+     "custo_sem": 57.37,
+     "custo_hipo": 57.37,
+     "ms_sem": 0.013,
+     "custo_real": 58.66,
+     "ms_com": 0.01,
+     "ms_com_recomendado": 0.009
+    },
+    "q04_pedidos_com_produto": {
+     "custo_sem": 322422.41,
+     "custo_hipo": 2643.57,
+     "ms_sem": 259.347,
+     "custo_real": 2631.31,
+     "ms_com": 0.606,
+     "ms_com_recomendado": 0.703
+    },
+    "q05_taxa_recompra_produto": {
+     "custo_sem": 322098.75,
+     "custo_hipo": 2511.41,
+     "ms_sem": 267.301,
+     "custo_real": 2499.64,
+     "ms_com": 0.523,
+     "ms_com_recomendado": 0.518
+    },
+    "q06_top_produtos_corredor": {
+     "custo_sem": 325455.94,
+     "custo_hipo": 86087.68,
+     "ms_sem": 533.434,
+     "custo_real": 79814.05,
+     "ms_com": 40.684,
+     "ms_com_recomendado": 41.577
+    },
+    "q07_comprados_juntos": {
+     "custo_sem": 352658.66,
+     "custo_hipo": 61843.96,
+     "ms_sem": 277.915,
+     "custo_real": 62593.05,
+     "ms_com": 19.109,
+     "ms_com_recomendado": 18.892
+    },
+    "q08_pedidos_por_hora": {
+     "custo_sem": 42176.59,
+     "custo_hipo": 42176.59,
+     "ms_sem": 120.708,
+     "custo_real": 42176.59,
+     "ms_com": 120.954,
+     "ms_com_recomendado": 121.346
+    },
+    "q09_favoritos_usuario": {
+     "custo_sem": 37191.83,
+     "custo_hipo": 1802.41,
+     "ms_sem": 48.795,
+     "custo_real": 1842.3,
+     "ms_com": 0.316,
+     "ms_com_recomendado": 0.296
+    },
+    "q10_pedido_treino_usuario": {
+     "custo_sem": 39344.73,
+     "custo_hipo": 2.68,
+     "ms_sem": 49.288,
+     "custo_real": 3.05,
+     "ms_com": 0.01,
+     "ms_com_recomendado": 0.009
+    },
+    "q11_clientes_mensais": {
+     "custo_sem": 48529.99,
+     "custo_hipo": 48529.99,
+     "ms_sem": 62.887,
+     "custo_real": 48768.75,
+     "ms_com": 62.262,
+     "ms_com_recomendado": 63.481
+    },
+    "q12_primeiros_pedidos_madrugada": {
+     "custo_sem": 42106.6,
+     "custo_hipo": 42106.6,
+     "ms_sem": 58.476,
+     "custo_real": 42106.58,
+     "ms_com": 58.721,
+     "ms_com_recomendado": 59.227
+    },
+    "q13_cesta_departamento_usuario": {
+     "custo_sem": 37210.79,
+     "custo_hipo": 1921.66,
+     "ms_sem": 49.241,
+     "custo_real": 1961.86,
+     "ms_com": 1.175,
+     "ms_com_recomendado": 1.062
+    },
+    "q14_busca_produto": {
+     "custo_sem": 1082.17,
+     "custo_hipo": 1082.17,
+     "ms_sem": 2.153,
+     "custo_real": 1082.17,
+     "ms_com": 2.15,
+     "ms_com_recomendado": 1.969
+    },
+    "q15_vendas_departamento_produto": {
+     "custo_sem": 333535.42,
+     "custo_hipo": 333535.42,
+     "ms_sem": 675.165,
+     "custo_real": 333535.78,
+     "ms_com": 674.503,
+     "ms_com_recomendado": 1722.46
+    }
+   },
+   "resumo": {
+    "consultas_com_ganho": 9,
+    "erro_mediano_hipo": 0.5401058493040952,
+    "erro_mediano_real": 0.5072441939960113,
+    "carga_estimada_hipo": 0.06160104553141089,
+    "carga_estimada_real": 0.06109257802479261,
+    "carga_medida": 0.07260180589323569,
+    "carga_medida_recomendado": 0.15602323876921478,
+    "regressoes": [
+     "q15_vendas_departamento_produto"
+    ]
+   }
+  }
+ }
+}

@@ -106,11 +106,19 @@ footer { color: var(--text-muted); font-size: 13px; margin-top: 40px; }
       <div class="sub">Custo estimado da carga inteira (ponderado pela frequência) depois de cada índice escolhido, em relação ao banco sem nenhum. A última barra é o tempo real medido.</div>
       <div id="rodadas"></div>
       <h2 style="margin-top:20px">Tamanho: estimado × real</h2>
-      <div class="sub">A HypoPG não modela a deduplicação de chaves do B-tree (Postgres 13 em diante) e estima cerca de três vezes o tamanho real.</div>
+      <div class="sub">A HypoPG estima o tamanho de um índice sem deduplicação de chaves (que o B-tree faz desde o Postgres 13): criados com <code>deduplicate_items = off</code>, os mesmos índices ocupam 73 e 725 MB, a 4% da estimativa. Com a deduplicação, ficam três vezes menores.</div>
       <div class="legend"><span><i class="sw" style="background:var(--series-1)"></i>Estimado pela HypoPG</span><span><i class="sw" style="background:var(--series-2)"></i>Real, depois de criado</span></div>
       <div id="tamanhos"></div>
     </section>
   </div>
+
+  <section class="card" aria-labelledby="t-calib">
+    <h2 id="t-calib">Calibrando o planejador: o que ele promete × o que entrega</h2>
+    <div class="sub">O <code>random_page_cost</code> diz ao planejador quanto custa ler uma página fora de ordem em relação a ler em sequência. O padrão, 4, foi pensado para disco giratório; aqui a base inteira está em memória. Para cada valor, o consultor recomendou de novo, e o conjunto recomendado foi criado e medido.</div>
+    <div class="legend"><span><i class="dot" style="background:var(--series-1)"></i>Custo estimado da carga</span><span><i class="dot" style="background:var(--series-2)"></i>Tempo medido da carga</span></div>
+    <div class="scroll"><div id="calib"></div></div>
+    <p class="note" id="calib-nota"></p>
+  </section>
 
   <section class="card" aria-labelledby="t-tabela">
     <h2 id="t-tabela">Todas as consultas</h2>
@@ -127,7 +135,7 @@ footer { color: var(--text-muted); font-size: 13px; margin-top: 40px; }
       <li><strong>Escolhe de forma gulosa:</strong> a cada rodada entra o candidato de maior ganho por byte que cabe no orçamento, com o ganho recalculado, porque dois índices que servem à mesma consulta não somam. Para quando a rodada ganha menos de 1% do custo atual.</li>
       <li><strong>Prova:</strong> cria os escolhidos de verdade e mede o tempo de cada consulta antes e depois.</li>
     </ol>
-    <p class="note">Limites: o guloso não desfaz uma escolha; o custo do planejador é a função objetivo e herda os erros dele (o gráfico "previsto × medido"); a carga é só de leitura, então o custo que índice impõe à escrita não entra; só B-tree.</p>
+    <p class="note">Limites: o guloso não desfaz uma escolha; o custo do planejador é a função objetivo e herda os erros dele (calibrar o <code>random_page_cost</code> ajuda na carga inteira, mas consulta a consulta o erro continua em torno de meia ordem de grandeza); a carga é só de leitura, então o custo que índice impõe à escrita não entra; só B-tree.</p>
   </section>
 
   <footer>Código: <a href="https://github.com/LuissFellipe/consultor-indices">github.com/LuissFellipe/consultor-indices</a>. Postgres 17, HypoPG 1.4.3, base Instacart Market Basket (Kaggle).</footer>
@@ -324,6 +332,43 @@ async function iniciar() {
       });
     });
     document.getElementById("tamanhos").replaceChildren(s);
+  })();
+
+  // ── calibração ──
+  (() => {
+    const K = D.calibracao || [];
+    if (!K.length) { document.getElementById("t-calib").parentElement.hidden = true; return; }
+    const W = 980, esq = 330, linha = 46, topo = 6, H = topo + K.length * linha + 30;
+    const max = Math.max(0.2, ...K.flatMap(k => [k.estimada, k.medida])) * 1.1;
+    const x = v => esq + v / max * (W - esq - 60);
+    const s = svg(W, H, "Custo estimado e tempo medido da carga para cada random_page_cost");
+    s.style.maxWidth = "none";
+    for (const t of [0, 0.05, 0.1, 0.15, 0.2]) {
+      if (t > max) continue;
+      el("line", { x1: x(t), x2: x(t), y1: topo, y2: H - 24, stroke: "var(--grid)" }, s);
+      txt(s, x(t), H - 8, pct(t).replace(",0", ""), { class: "ax", "text-anchor": "middle" });
+    }
+    K.forEach((k, i) => {
+      const y = topo + i * linha + linha / 2;
+      const g = el("g", { class: "hit", "aria-label": `random_page_cost ${k.random_page_cost}: estimado ${pct(k.estimada)}, medido ${pct(k.medida)}` }, s);
+      el("rect", { x: 0, y: y - linha / 2, width: W, height: linha, fill: "transparent" }, g);
+      const t1 = txt(g, esq - 12, y - 3, `random_page_cost = ${String(k.random_page_cost).replace(".", ",")}${k.random_page_cost === 4 ? " (padrão)" : ""}`, { "text-anchor": "end" });
+      t1.setAttribute("style", "fill: var(--text-primary)");
+      const extra = k.recomendados.length > 2 ? `${k.recomendados.length} índices · ⚠ q15 mais lenta que sem índice` : `${k.recomendados.length} índices`;
+      txt(g, esq - 12, y + 13, extra, { class: "ax", "text-anchor": "end" });
+      const xe = x(k.estimada), xm = x(k.medida);
+      el("line", { x1: xe, x2: xm, y1: y, y2: y, stroke: "var(--axis)", "stroke-width": 2 }, g);
+      el("circle", { class: "mark", cx: xe, cy: y, r: 5, fill: "var(--series-1)", stroke: "var(--surface-1)", "stroke-width": 2 }, g);
+      el("circle", { class: "mark", cx: xm, cy: y, r: 5, fill: "var(--series-2)", stroke: "var(--surface-1)", "stroke-width": 2 }, g);
+      txt(g, Math.max(xe, xm) + 10, y + 4, `${pct(k.estimada)} → ${pct(k.medida)}`, { class: "val" });
+      interativo(g, () => [`${pct(k.medida)} medido`, `${pct(k.estimada)} estimado`, `Recomendados: ${k.recomendados.join(", ")}`,
+        k.regressoes.length ? `Mais lenta que sem índice: ${k.regressoes.join(", ")}` : "Nenhuma consulta piorou"]);
+    });
+    document.getElementById("calib").replaceChildren(s);
+    const bom = K.find(k => k.random_page_cost === 2);
+    const ruim = K.find(k => k.regressoes.length);
+    document.getElementById("calib-nota").textContent = (bom ? `Com ${String(bom.random_page_cost).replace(".", ",")}, a promessa e a entrega quase coincidem (${pct(bom.estimada)} estimado, ${pct(bom.medida)} medido). ` : "")
+      + (ruim ? `Abaixo disso, o planejador passa a confiar em acesso aleatório e o consultor acrescenta ${ruim.recomendados[2]}: na q15 ele troca um hash join paralelo por 4.007 buscas no índice de order_products, e a consulta fica 2,5 vezes mais lenta que sem índice nenhum. A carga inteira dobra (${pct(ruim.medida)}). Só a medição mostra isso; a estimativa prometia ${pct(ruim.estimada)}.` : "");
   })();
 
   // ── tabela ──
