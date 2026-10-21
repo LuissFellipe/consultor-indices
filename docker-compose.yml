@@ -1,0 +1,27 @@
+services:
+  postgres:
+    build: ./db
+    environment:
+      POSTGRES_USER: consultor
+      POSTGRES_PASSWORD: consultor
+      POSTGRES_DB: instacart
+    # pg_stat_statements precisa estar pré-carregado. track_io_timing deixa o
+    # EXPLAIN (ANALYZE, BUFFERS) mostrar quanto tempo foi disco.
+    command: >
+      postgres
+      -c shared_preload_libraries=pg_stat_statements
+      -c pg_stat_statements.track=all
+      -c track_io_timing=on
+      -c shared_buffers=1GB
+      -c work_mem=64MB
+      -c maintenance_work_mem=512MB
+      -c max_parallel_workers_per_gather=4
+    ports:
+      - "127.0.0.1:5433:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+      - ./data/raw:/dados:ro
+    shm_size: 1gb
+
+volumes:
+  pgdata:

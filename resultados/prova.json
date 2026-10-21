@@ -1,0 +1,48 @@
+{
+ "antes_ms": {
+  "q01_historico_usuario": 42.029,
+  "q02_ultimo_pedido_itens": 85.038,
+  "q03_itens_do_pedido": 0.01,
+  "q04_pedidos_com_produto": 224.999,
+  "q05_taxa_recompra_produto": 233.132,
+  "q06_top_produtos_corredor": 493.251,
+  "q07_comprados_juntos": 243.447,
+  "q08_pedidos_por_hora": 126.958,
+  "q09_favoritos_usuario": 52.464,
+  "q10_pedido_treino_usuario": 53.799,
+  "q11_clientes_mensais": 67.734,
+  "q12_primeiros_pedidos_madrugada": 62.76,
+  "q13_cesta_departamento_usuario": 53.074,
+  "q14_busca_produto": 2.363,
+  "q15_vendas_departamento_produto": 639.754
+ },
+ "depois_ms": {
+  "q01_historico_usuario": 0.035,
+  "q02_ultimo_pedido_itens": 0.032,
+  "q03_itens_do_pedido": 0.009,
+  "q04_pedidos_com_produto": 1.883,
+  "q05_taxa_recompra_produto": 1.704,
+  "q06_top_produtos_corredor": 40.598,
+  "q07_comprados_juntos": 24.165,
+  "q08_pedidos_por_hora": 126.639,
+  "q09_favoritos_usuario": 0.283,
+  "q10_pedido_treino_usuario": 0.009,
+  "q11_clientes_mensais": 67.755,
+  "q12_primeiros_pedidos_madrugada": 63.173,
+  "q13_cesta_departamento_usuario": 1.051,
+  "q14_busca_produto": 1.938,
+  "q15_vendas_departamento_produto": 658.197
+ },
+ "tamanhos": {
+  "orders(user_id)": {
+   "estimado": 79446016,
+   "real": 27992064
+  },
+  "order_products(product_id)": {
+   "estimado": 785432576,
+   "real": 238149632
+  }
+ },
+ "carga_antes_s": 170.047596,
+ "carga_depois_s": 13.902098
+}

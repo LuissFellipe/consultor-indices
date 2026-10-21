@@ -1,0 +1,13 @@
+# Python-generated files
+__pycache__/
+*.py[oc]
+build/
+dist/
+wheels/
+*.egg-info
+
+# Virtual environments
+.venv
+
+# CSVs do Kaggle: grandes e com licença própria. Baixar conforme o README.
+/data/

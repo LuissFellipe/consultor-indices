@@ -1,0 +1,135 @@
+{
+ "orcamento_mb": 1024,
+ "limiar": 0.01,
+ "custo_inicial": 180564246.98000002,
+ "indices": [
+  {
+   "tabela": "orders",
+   "colunas": [
+    "user_id"
+   ],
+   "tamanho_estimado": 79446016,
+   "ganho": 66331362.80000001,
+   "custo_depois": 114232884.18
+  },
+  {
+   "tabela": "order_products",
+   "colunas": [
+    "product_id"
+   ],
+   "tamanho_estimado": 785432576,
+   "ganho": 94857350.10000001,
+   "custo_depois": 19375534.08
+  }
+ ],
+ "consultas": {
+  "q01_historico_usuario": {
+   "peso": 600.0,
+   "custo_antes": 36587.08,
+   "custo_depois": 9.29,
+   "usa": [
+    "orders(user_id)"
+   ]
+  },
+  "q02_ultimo_pedido_itens": {
+   "peso": 400.0,
+   "custo_antes": 78907.08,
+   "custo_depois": 236.12,
+   "usa": [
+    "orders(user_id)"
+   ]
+  },
+  "q03_itens_do_pedido": {
+   "peso": 800.0,
+   "custo_antes": 214.43,
+   "custo_depois": 214.43,
+   "usa": []
+  },
+  "q04_pedidos_com_produto": {
+   "peso": 120.0,
+   "custo_antes": 322422.75,
+   "custo_depois": 9219.88,
+   "usa": [
+    "order_products(product_id)"
+   ]
+  },
+  "q05_taxa_recompra_produto": {
+   "peso": 150.0,
+   "custo_antes": 322099.09,
+   "custo_depois": 9087.73,
+   "usa": [
+    "order_products(product_id)"
+   ]
+  },
+  "q06_top_produtos_corredor": {
+   "peso": 20.0,
+   "custo_antes": 325456.28,
+   "custo_depois": 106926.65,
+   "usa": [
+    "order_products(product_id)"
+   ]
+  },
+  "q07_comprados_juntos": {
+   "peso": 30.0,
+   "custo_antes": 415553.69,
+   "custo_depois": 217196.72,
+   "usa": [
+    "order_products(product_id)"
+   ]
+  },
+  "q08_pedidos_por_hora": {
+   "peso": 2.0,
+   "custo_antes": 42176.59,
+   "custo_depois": 42176.59,
+   "usa": []
+  },
+  "q09_favoritos_usuario": {
+   "peso": 200.0,
+   "custo_antes": 38752.12,
+   "custo_depois": 6644.89,
+   "usa": [
+    "orders(user_id)"
+   ]
+  },
+  "q10_pedido_treino_usuario": {
+   "peso": 100.0,
+   "custo_antes": 39344.73,
+   "custo_depois": 8.67,
+   "usa": [
+    "orders(user_id)"
+   ]
+  },
+  "q11_clientes_mensais": {
+   "peso": 10.0,
+   "custo_antes": 48713.01,
+   "custo_depois": 48713.01,
+   "usa": []
+  },
+  "q12_primeiros_pedidos_madrugada": {
+   "peso": 5.0,
+   "custo_antes": 42106.34,
+   "custo_depois": 42106.34,
+   "usa": []
+  },
+  "q13_cesta_departamento_usuario": {
+   "peso": 80.0,
+   "custo_antes": 38770.73,
+   "custo_depois": 6755.07,
+   "usa": [
+    "orders(user_id)"
+   ]
+  },
+  "q14_busca_produto": {
+   "peso": 300.0,
+   "custo_antes": 1082.17,
+   "custo_depois": 1082.17,
+   "usa": []
+  },
+  "q15_vendas_departamento_produto": {
+   "peso": 15.0,
+   "custo_antes": 333538.12,
+   "custo_depois": 333538.12,
+   "usa": []
+  }
+ }
+}

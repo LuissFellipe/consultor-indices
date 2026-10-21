@@ -1,0 +1,17 @@
+{
+ "q01_historico_usuario": 43.696,
+ "q02_ultimo_pedido_itens": 88.189,
+ "q03_itens_do_pedido": 0.015,
+ "q04_pedidos_com_produto": 224.575,
+ "q05_taxa_recompra_produto": 235.635,
+ "q06_top_produtos_corredor": 513.68,
+ "q07_comprados_juntos": 246.996,
+ "q08_pedidos_por_hora": 127.265,
+ "q09_favoritos_usuario": 52.143,
+ "q10_pedido_treino_usuario": 54.12,
+ "q11_clientes_mensais": 67.065,
+ "q12_primeiros_pedidos_madrugada": 63.616,
+ "q13_cesta_departamento_usuario": 53.822,
+ "q14_busca_produto": 1.941,
+ "q15_vendas_departamento_produto": 651.829
+}
